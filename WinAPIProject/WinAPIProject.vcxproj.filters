@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="WinMain">
+      <UniqueIdentifier>{1b926b63-ae2b-401a-a2dc-60c3c39e289d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ManagerClass">
+      <UniqueIdentifier>{9501df6c-0e02-4839-b44b-6255594278d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager">
+      <UniqueIdentifier>{91762831-98ea-4704-8007-60b68ff658be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{e5f6d77b-2376-4639-bc97-18971177d78f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="API Framework">
+      <UniqueIdentifier>{e1b6397c-378b-4ce1-863f-f7b2a393f3e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="API Framework\DesignPattern">
+      <UniqueIdentifier>{33d0fb1a-7a00-4241-b176-c2bf31539021}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="API Framework\Utility">
+      <UniqueIdentifier>{393e174c-4934-4652-b0b0-4956bd6a80c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="API Framework\PCH">
+      <UniqueIdentifier>{fc1be1bf-ab7d-4855-ac3e-ffe7fdf60729}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="API Framework\DesignPattern\Singleton">
+      <UniqueIdentifier>{06d064fb-a8ef-48cc-866b-8e2b163d431c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Stdafx.h">
+      <Filter>API Framework\PCH</Filter>
+    </ClInclude>
+    <ClInclude Include="MainGame.h">
+      <Filter>ManagerClass</Filter>
+    </ClInclude>
+    <ClInclude Include="GImage.h" />
+    <ClInclude Include="KeyManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="GameNode.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonMacroFuntion.h">
+      <Filter>API Framework\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="RandomFuntion.h">
+      <Filter>API Framework\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="SingletonBase.h">
+      <Filter>API Framework\DesignPattern\Singleton</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WinMain.cpp">
+      <Filter>WinMain</Filter>
+    </ClCompile>
+    <ClCompile Include="MainGame.cpp">
+      <Filter>ManagerClass</Filter>
+    </ClCompile>
+    <ClCompile Include="GImage.cpp" />
+    <ClCompile Include="KeyManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="GameNode.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
