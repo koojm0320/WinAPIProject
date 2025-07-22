@@ -7,7 +7,7 @@ HRESULT MainGame::init(void)
 
 	// 배경 이미지 주소값
 	_bgImage = new GImage;
-	_bgImage->init("Resources/Images/BackGround.bmp", WINSIZE_X, WINSIZE_Y);
+	_bgImage->init("Resources/Images/BackGround/BackGround.bmp", WINSIZE_X, WINSIZE_Y);
 
 	// 플레이어 이미지 주소값
 	_plImage = new GImage;
