@@ -18,7 +18,7 @@ inline void LineMake(HDC hdc, int startX, int startY, int endX, int endY)
 
 inline RECT RectMake(int x, int y, int width, int height)
 {
-	RECT rc = { x, y, x + width, y + width };
+	RECT rc = { x, y, x + width, y + height };
 	return rc;
 }
 
@@ -29,7 +29,7 @@ inline void DrawRectMake(HDC hdc, RECT rc)
 
 inline RECT RectMakeCenter(int x, int y, int width, int height)
 {
-	RECT rc = { x - width / 2, y - height / 2, x + width / 2, y + width / 2 };
+	RECT rc = { x - width / 2, y - height / 2, x + width / 2, y + height / 2 };
 	return rc;
 }
 

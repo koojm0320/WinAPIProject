@@ -19,4 +19,3 @@ public:
 	GameNode();
 	virtual ~GameNode();
 };
-

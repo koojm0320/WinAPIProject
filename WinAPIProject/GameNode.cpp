@@ -34,7 +34,7 @@ void GameNode::update(void)
 void GameNode::render(HDC hdc)
 {
 	TCHAR strPT[1024];
-	wsprintf(strPT, "%d", GetTickCount64() / 1000);
+	wsprintf(strPT, "%d", GetTickCount() / 1000);
 	TextOut(hdc, 10, 10, strPT, strlen(strPT));
 }
 

@@ -12,7 +12,7 @@ int centerX, centerY;
 RECT _rc1, _rc2;
 
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-LPTSTR _lpszClass = TEXT("Window API");
+//LPTSTR _lpszClass = TEXT("Window API");
 
 int APIENTRY wWinMain(
 	HINSTANCE	hInstance,
@@ -26,16 +26,16 @@ int APIENTRY wWinMain(
 
 	WNDCLASS wndClass;
 
-	wndClass.cbClsExtra = 0;			// 클래스 여분 메모리
-	wndClass.cbWndExtra = 0;			// 윈도우 여분 메모리
+	wndClass.cbClsExtra = 0;										// 클래스 여분 메모리
+	wndClass.cbWndExtra = 0;										// 윈도우 여분 메모리
 	wndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);	// 배경 색상
-	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);		// 커서(C스타일 맞춰서 NULL로 써주자)
-	wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);	// 아이콘
-	wndClass.hInstance = hInstance;		// 식별자 정보
-	wndClass.lpfnWndProc = WndProc;		// 프로시저
-	wndClass.lpszClassName = _lpszClass;		// 클래스 이름
-	wndClass.lpszMenuName = NULL;				// 메뉴 이름
-	wndClass.style = CS_HREDRAW | CS_VREDRAW;	// 스타일 (다시 그리기 정보)
+	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);					// 커서(C스타일 맞춰서 NULL로 써주자)
+	wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);				// 아이콘
+	wndClass.hInstance = hInstance;									// 식별자 정보
+	wndClass.lpfnWndProc = WndProc;									// 프로시저
+	wndClass.lpszClassName = WINNAME;							// 클래스 이름
+	wndClass.lpszMenuName = NULL;									// 메뉴 이름
+	wndClass.style = CS_HREDRAW | CS_VREDRAW;						// 스타일 (다시 그리기 정보)
 
 	RegisterClass(&wndClass);
 
@@ -57,7 +57,7 @@ int APIENTRY wWinMain(
 
 	// 1-4. 창 호출
 	ShowWindow(_hWnd, nCmdShow);
-	//UpdateWindow(_hWnd);  프레임워크 구축 없으면 사용한다.
+	//UpdateWindow(_hWnd);  // 프레임워크 구축 없으면 사용한다.
 
 	if (FAILED(_mg->init()))
 		return 0;
@@ -82,7 +82,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 }
 void setWindowSize(int x, int y, int width, int height)
 {
-	RECT rc = { 0,0,width, height };
+	RECT rc = { 0, 0, width, height };
 	AdjustWindowRect(&rc, WINSTYLE, false);
 	SetWindowPos(_hWnd, NULL, x, y,
 		(rc.right - rc.left),

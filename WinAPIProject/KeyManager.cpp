@@ -1,5 +1,5 @@
-#include "KeyManager.h"
 #include "stdafx.h"
+#include "KeyManager.h"
 
 HRESULT KeyManager::init(void)
 {
