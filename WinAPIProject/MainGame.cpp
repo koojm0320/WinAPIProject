@@ -33,7 +33,7 @@ HRESULT MainGame::init(void)
 	// 물리 변수
 	_playerState = PlayerState::RUNNING;
 	_jumpPower = 18.0f;
-	_gravity = 0.98f;
+	_gravity = 1.0f;
 	_velocityY = 0.0f;
 	_canDoubleJump = false;
 	_landingTime = 0.15f; // 0.15초간 착지 모션

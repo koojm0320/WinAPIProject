@@ -28,7 +28,6 @@ private:
 	float _bgObj1X;
 	float _bgObj2X;
 
-	// bool _isSliding;
 
 	PlayerState _playerState;
 	float _groundY;
