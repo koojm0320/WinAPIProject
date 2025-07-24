@@ -66,21 +66,21 @@ void MainGame::update(void)
 	{
 	}
 
-	_bgX += -5.0f;
+	_bgX += -1.0f;
 
 	if (_bgX <= -WINSIZE_X)
 	{
 		_bgX = 0;
 	}
 
-	_bgObj1X += -8.0f;
+	_bgObj1X += -1.5f;
 
 	if (_bgObj1X <= -WINSIZE_X)
 	{
 		_bgObj1X = 0;
 	}
 
-	_bgObj2X += -10.0f;
+	_bgObj2X += -2.0f;
 
 	if (_bgObj2X <= -WINSIZE_X)
 	{		  
