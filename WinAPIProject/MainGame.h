@@ -2,6 +2,15 @@
 #include "Stdafx.h"
 #include "GameNode.h"
 
+enum class PlayerState
+{
+	RUNNING,
+	SLIDING,
+	JUMPING,
+	DOUBLE_JUMPING,
+	LANDING
+};
+
 class MainGame : public GameNode
 {
 private:
@@ -9,17 +18,30 @@ private:
 	GImage* _bgObjImage1;
 	GImage* _bgObjImage2;
 
-	int _playerFrameCount;
-	int _playerFrameX;
-
 	int _panCakeX;
-	int _panCakeY;
+	float _panCakeY;
+	
 	int _panCakeFrameX;
 	int _panCakeFrameCount;
 
 	float _bgX;
 	float _bgObj1X;
 	float _bgObj2X;
+
+	// bool _isSliding;
+
+	PlayerState _playerState;
+	float _groundY;
+
+	float _jumpPower;
+	float _gravity;
+	float _velocityY;
+
+	bool _canDoubleJump;
+
+	float _landingTime;
+	float _landingTimer;
+
 
 public:
 	MainGame() {};
