@@ -18,8 +18,8 @@ HRESULT MainGame::init(void)
 	
 	IMAGEMANAGER->addFrameImage("기본달리기", "Resources/Images/Object/PanCakeRun.bmp", 181 * 4, 144, 4, 1, true, RGB(255, 0, 255));
 
-	_panCakeX = 100;
-	_panCakeY = WINSIZE_Y - 194;
+	_panCakeX = 130;
+	_panCakeY = WINSIZE_Y - 250;
 	_panCakeFrameX = 0;
 	_panCakeFrameCount = 0;
 
@@ -66,21 +66,21 @@ void MainGame::update(void)
 	{
 	}
 
-	_bgX += -0.5f;
+	_bgX += -5.0f;
 
 	if (_bgX <= -WINSIZE_X)
 	{
 		_bgX = 0;
 	}
 
-	_bgObj1X += -1.0f;
+	_bgObj1X += -8.0f;
 
 	if (_bgObj1X <= -WINSIZE_X)
 	{
 		_bgObj1X = 0;
 	}
 
-	_bgObj2X += -1.5f;
+	_bgObj2X += -10.0f;
 
 	if (_bgObj2X <= -WINSIZE_X)
 	{		  
