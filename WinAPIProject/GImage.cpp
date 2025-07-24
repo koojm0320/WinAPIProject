@@ -80,6 +80,47 @@ HRESULT GImage::init(const char* fileName, int width, int height, bool isTrans, 
     return S_OK;
 }
 
+HRESULT GImage::init(const char* fileName, int width, int height, int maxFrameX, int maxFrameY, bool isTrans, COLORREF transColor)
+{
+    if (_imageInfo != nullptr) this->release();
+
+    HDC hdc = GetDC(_hWnd);
+
+    _imageInfo = new IMAGE_INFO;
+    _imageInfo->loadType = LOAD_FILE;
+    _imageInfo->hMemDC = CreateCompatibleDC(hdc);
+    _imageInfo->hBit = (HBITMAP)LoadImage(_hInstance, fileName, IMAGE_BITMAP, width, height, LR_LOADFROMFILE);
+    _imageInfo->hOBIT = (HBITMAP)SelectObject(_imageInfo->hMemDC, _imageInfo->hBit);
+    _imageInfo->width = width;
+    _imageInfo->height = height;
+
+    // 프레임 정보 저장
+    _imageInfo->currentFrameX = 0;
+    _imageInfo->currentFrameY = 0;
+    _imageInfo->maxFrameX = maxFrameX - 1; // 0부터 시작하므로 -1
+    _imageInfo->maxFrameY = maxFrameY - 1;
+    // 프레임 1개의 너비와 높이 계산
+    _imageInfo->frameWidth = width / maxFrameX;
+    _imageInfo->frameHeight = height / maxFrameY;
+
+    int len = strlen(fileName);
+    _fileName = new char[len + 1];
+    strcpy_s(_fileName, len + 1, fileName);
+
+    _isTrans = isTrans;
+    _transColor = transColor;
+
+    if (_imageInfo->hBit == 0)
+    {
+        release();
+        return E_FAIL;
+    }
+
+    ReleaseDC(_hWnd, hdc);
+
+    return S_OK;
+}
+
 void GImage::setTransColor(bool isTrans, COLORREF transColor)
 {
     _isTrans = isTrans;
@@ -155,5 +196,40 @@ void GImage::render(HDC hdc, int destX, int destY)
     else
     {
         BitBlt(hdc, destX, destY, _imageInfo->width, _imageInfo->height, _imageInfo->hMemDC, 0, 0, SRCCOPY);
+    }
+}
+
+void GImage::frameRender(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY)
+{
+    // 현재 프레임 위치 업데이트
+    _imageInfo->currentFrameX = currentFrameX;
+    _imageInfo->currentFrameY = currentFrameY;
+
+    // 잘라낼 소스(이미지 원본)의 좌상단 좌표 계산
+    int sourceX = _imageInfo->frameWidth * currentFrameX;
+    int sourceY = _imageInfo->frameHeight * currentFrameY;
+
+    // 투명색 처리가 필요할 경우
+    if (_isTrans)
+    {
+        GdiTransparentBlt(
+            hdc,							
+            destX, destY,					
+            _imageInfo->frameWidth,			
+            _imageInfo->frameHeight,		
+            _imageInfo->hMemDC,				
+            sourceX, sourceY,				
+            _imageInfo->frameWidth,			
+            _imageInfo->frameHeight,		
+            _transColor);					
+    }
+    else // 투명색 처리가 필요 없을 경우
+    {
+        BitBlt(
+            hdc, destX, destY,
+            _imageInfo->frameWidth, _imageInfo->frameHeight,
+            _imageInfo->hMemDC,
+            sourceX, sourceY,
+            SRCCOPY);
     }
 }

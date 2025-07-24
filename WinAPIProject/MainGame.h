@@ -8,6 +8,14 @@ private:
 	GImage* _bgImage;
 	GImage* _plImage;
 
+	int _playerFrameCount;
+	int _playerFrameX;
+
+	int _panCakeX;
+	int _panCakeY;
+	int _panCakeFrameX;
+	int _panCakeFrameCount;
+
 	float _bgX;
 
 public:

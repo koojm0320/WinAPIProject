@@ -26,9 +26,11 @@
 #include "CommonMacroFuntion.h"
 #include "RandomFuntion.h"
 #include "KeyManager.h"
+#include "ImageManager.h"
 
 #define RND RandomFuntion::getSingleton()
 #define KEYMANAGER KeyManager::getSingleton()
+#define IMAGEMANAGER ImageManager::getSingleton()
 
 // # 매크로 (윈도우창 초기화) #
 

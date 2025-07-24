@@ -52,6 +52,7 @@
     <ClInclude Include="SingletonBase.h">
       <Filter>API Framework\DesignPattern\Singleton</Filter>
     </ClInclude>
+    <ClInclude Include="ImageManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
@@ -67,5 +68,9 @@
     <ClCompile Include="GameNode.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="ImageManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="구현 목록.txt" />
   </ItemGroup>
 </Project>
