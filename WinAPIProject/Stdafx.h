@@ -35,8 +35,8 @@
 #define WINNAME			(LPTSTR)(TEXT("Windows API"))
 #define WINSTART_X		400
 #define WINSTART_Y		1
-#define WINSIZE_X		800
-#define WINSIZE_Y		1000
+#define WINSIZE_X		1600
+#define WINSIZE_Y		900
 #define WINSTYLE		WS_CAPTION | WS_SYSMENU
 
 #define SAFE_DELETE(p)			{if(p) {delete (p); (p) = nullptr;}}
