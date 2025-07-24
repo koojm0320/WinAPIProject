@@ -45,14 +45,6 @@ void MainGame::update(void)
 {
 	GameNode::update();
 
-	if (KEYMANAGER->isOnceKeyDown('Q'))
-	{
-		if (MessageBox(_hWnd, "게임을 종료하시겠습니까?", "게임 종료", MB_OKCANCEL))
-		{
-			PostQuitMessage(0);
-		}
-	}
-
 	if (KEYMANAGER->isStayKeyDown(VK_UP))
 	{
 	}
