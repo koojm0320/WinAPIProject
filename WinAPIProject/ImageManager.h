@@ -1,6 +1,8 @@
 #pragma once
 #include "SingletonBase.h"
-#include "GImage.h"
+//#include "GImage.h"
+
+class GImage;
 
 class ImageManager : public SingletonBase<ImageManager>
 {
@@ -29,5 +31,4 @@ public:
     void frameRender(std::string strKey, HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY);
     
     ImageManager();
-    ~ImageManager();
 };

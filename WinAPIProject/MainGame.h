@@ -6,7 +6,8 @@ class MainGame : public GameNode
 {
 private:
 	GImage* _bgImage;
-	GImage* _plImage;
+	GImage* _bgObjImage1;
+	GImage* _bgObjImage2;
 
 	int _playerFrameCount;
 	int _playerFrameX;
@@ -17,6 +18,8 @@ private:
 	int _panCakeFrameCount;
 
 	float _bgX;
+	float _bgObj1X;
+	float _bgObj2X;
 
 public:
 	MainGame() {};

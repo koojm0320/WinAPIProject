@@ -7,8 +7,15 @@ HRESULT MainGame::init(void)
 
 	// 배경 이미지 주소값
 	_bgImage = new GImage;
-	_bgImage->init("Resources/Images/BackGround/DarkSky.bmp", WINSIZE_X, WINSIZE_Y);
+	_bgImage->init("Resources/Images/BackGround/BackGround.bmp", WINSIZE_X, WINSIZE_Y);
 
+	_bgObjImage1 = new GImage;
+	_bgObjImage1->init("Resources/Images/BackGround/BackGroundObject1.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
+
+	_bgObjImage2 = new GImage;
+	_bgObjImage2->init("Resources/Images/BackGround/BackGroundObject2.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
+
+	
 	IMAGEMANAGER->addFrameImage("기본달리기", "Resources/Images/Object/PanCakeRun.bmp", 181 * 4, 144, 4, 1, true, RGB(255, 0, 255));
 
 	_panCakeX = 100;
@@ -19,6 +26,7 @@ HRESULT MainGame::init(void)
 	RND->init();
 
 	_bgX = 0.0f;
+	_bgObj1X = 0.0f;
 
 	return S_OK;
 }
@@ -29,7 +37,8 @@ void MainGame::release(void)
 	IMAGEMANAGER->release();
 
 	SAFE_DELETE(_bgImage);
-	//SAFE_DELETE(_plImage);
+	SAFE_DELETE(_bgObjImage1);
+	SAFE_DELETE(_bgObjImage2);
 }
 
 void MainGame::update(void)
@@ -57,15 +66,29 @@ void MainGame::update(void)
 	{
 	}
 
-	_bgX += -10.0f;
+	_bgX += -0.5f;
 
 	if (_bgX <= -WINSIZE_X)
 	{
 		_bgX = 0;
 	}
 
+	_bgObj1X += -1.0f;
+
+	if (_bgObj1X <= -WINSIZE_X)
+	{
+		_bgObj1X = 0;
+	}
+
+	_bgObj2X += -1.5f;
+
+	if (_bgObj2X <= -WINSIZE_X)
+	{		  
+		_bgObj2X = 0;
+	}
+
 	_panCakeFrameCount++;
-	if (_panCakeFrameCount % 10 == 0) // 애니메이션 속도 조절
+	if (_panCakeFrameCount % 5 == 0) // 애니메이션 속도 조절
 	{
 		_panCakeFrameX++;
 		if (_panCakeFrameX >= 4) // 총 4개의 프레임
@@ -83,6 +106,12 @@ void MainGame::render(HDC hdc)
 
 	_bgImage->render(memDC, (int)_bgX, 0);
 	_bgImage->render(memDC, (int)_bgX + WINSIZE_X, 0);
+
+	_bgObjImage1->render(memDC, (int)_bgObj1X, 0);
+	_bgObjImage1->render(memDC, (int)_bgObj1X + WINSIZE_X, 0);
+
+	_bgObjImage2->render(memDC, (int)_bgObj2X, 0);
+	_bgObjImage2->render(memDC, (int)_bgObj2X + WINSIZE_X, 0);
 
 	IMAGEMANAGER->frameRender("기본달리기", memDC, _panCakeX, _panCakeY, _panCakeFrameX, 0);
 

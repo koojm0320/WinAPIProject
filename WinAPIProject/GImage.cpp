@@ -1,5 +1,5 @@
-#include "GImage.h"
 #include "Stdafx.h"
+#include "GImage.h"
 
 
 GImage::GImage() : _imageInfo(nullptr),

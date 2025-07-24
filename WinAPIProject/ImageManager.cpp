@@ -1,8 +1,8 @@
 ﻿#include "Stdafx.h"
 #include "ImageManager.h"
+#include "GImage.h"
 
 ImageManager::ImageManager() {}
-ImageManager::~ImageManager() {}
 
 HRESULT ImageManager::init(void)
 {

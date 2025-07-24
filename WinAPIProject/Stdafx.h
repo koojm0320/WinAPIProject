@@ -35,10 +35,10 @@
 // # 매크로 (윈도우창 초기화) #
 
 #define WINNAME			(LPTSTR)(TEXT("Windows API"))
-#define WINSTART_X		400
+#define WINSTART_X		100
 #define WINSTART_Y		1
-#define WINSIZE_X		1600
-#define WINSIZE_Y		900
+#define WINSIZE_X		1067
+#define WINSIZE_Y		600
 #define WINSTYLE		WS_CAPTION | WS_SYSMENU
 
 #define SAFE_DELETE(p)			{if(p) {delete (p); (p) = nullptr;}}
