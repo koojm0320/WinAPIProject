@@ -199,6 +199,30 @@ void GImage::render(HDC hdc, int destX, int destY)
     }
 }
 
+void GImage::render(HDC hdc, int destX, int destY, int sourX, int sourY, int sourWidth, int sourHeight)
+{
+    if (_isTrans)
+    {
+        GdiTransparentBlt
+        (
+            hdc,
+            destX, destY,
+            sourWidth,
+            sourHeight,
+            _imageInfo->hMemDC,
+            sourX, sourY,
+            sourWidth,
+            sourHeight,
+            _transColor
+        );
+    }
+    else
+    {
+        BitBlt(hdc, destX, destY, sourWidth, sourHeight, _imageInfo->hMemDC, sourX, sourY, SRCCOPY);
+    }
+}
+
+
 void GImage::frameRender(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY)
 {
     // 현재 프레임 위치 업데이트
@@ -232,4 +256,66 @@ void GImage::frameRender(HDC hdc, int destX, int destY, int currentFrameX, int c
             sourceX, sourceY,
             SRCCOPY);
     }
+}
+
+void GImage::loopRender(HDC hdc, const LPRECT drawArea, int offSetX, int offSetY)
+{
+    if (offSetX < 0) offSetX = _imageInfo->width + (offSetX % _imageInfo->width);
+    if (offSetY < 0) offSetY = _imageInfo->height + (offSetY % _imageInfo->height);
+
+    RECT rcSour;
+    int sourWidth;
+    int sourHeight;
+
+    RECT rcDest;
+
+    int drawAreaX = drawArea->left;
+    int drawAreaY = drawArea->top;
+    int drawAreaW = drawArea->right - drawArea->left;
+    int drawAreaH = drawArea->bottom - drawArea->top;
+
+    // Y(세로) 방향 루프
+    for (int y = 0; y < drawAreaH; y += sourHeight)
+    {
+        // 소스 영역의 높이를 계산
+        rcSour.top = (y + offSetY) % _imageInfo->height;
+        rcSour.bottom = _imageInfo->height;
+        sourHeight = rcSour.bottom - rcSour.top;
+
+        // 소스 영역이 그리는 화면 영역을 넘어감 (화면 밖으로 넘어감)
+        if (y + sourHeight > drawAreaH)
+        {
+            rcSour.bottom -= (y + sourHeight) - drawAreaH;
+            sourHeight = rcSour.bottom - rcSour.top;
+        }
+
+        // 그려지는 영역
+        rcDest.top = y + drawAreaY;
+        rcDest.bottom = rcDest.top + sourHeight;
+
+        // X(가로) 방향 루프
+        for (int x = 0; x < drawAreaW; x += sourWidth)
+        {
+            // 소스 영역의 높이를 계산
+            rcSour.left = (x + offSetX) % _imageInfo->width;
+            rcSour.right = _imageInfo->width;
+            sourWidth = rcSour.right - rcSour.left;
+
+            // 소스 영역이 그리는 화면 영역을 넘어감 (화면 밖으로 넘어감)
+            if (x + sourWidth > drawAreaW)
+            {
+                rcSour.right -= (x + sourWidth) - drawAreaW;
+                sourWidth = rcSour.right - rcSour.left;
+            }
+
+            // 그려지는 영역
+            rcDest.left = x + drawAreaX;
+            rcDest.right = rcDest.left + sourWidth;
+
+
+            render(hdc, rcDest.left, rcDest.top, rcSour.left, rcSour.top, sourWidth, sourHeight);
+        } // <- end of forX
+    } // <- end of forY
+
+
 }

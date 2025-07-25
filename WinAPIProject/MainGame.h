@@ -17,6 +17,7 @@ private:
 	GImage* _bgImage;
 	GImage* _bgObjImage1;
 	GImage* _bgObjImage2;
+	GImage* _tileImage;
 
 	int _panCakeX;
 	float _panCakeY;
@@ -41,10 +42,14 @@ private:
 	float _landingTime;
 	float _landingTimer;
 
+	// 타일 관련
+	std::vector<std::vector<int>> _tileMap;
+	float _mapPosX;
+
 
 public:
-	MainGame() {};
-	~MainGame() {};
+	MainGame();
+	~MainGame() {}
 
 	HRESULT init(void) override;
 	void release(void) override;

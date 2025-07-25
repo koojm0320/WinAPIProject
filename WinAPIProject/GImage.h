@@ -68,7 +68,11 @@ public:
 
 	void render(HDC hdc);
 	void render(HDC hdc, int destX, int destY);
+	void render(HDC hdc, int destX, int destY, int sourX, int sourY, int sourWidth, int sourHeight);
+
 	void frameRender(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY);
+	void loopRender(HDC hdc, const LPRECT drawArea, int offSetX, int offSetY);
+
 
 	inline HDC getMemDC(void) { return _imageInfo->hMemDC; }
 	inline int getMaxFrameX(void) { return _imageInfo->maxFrameX; }

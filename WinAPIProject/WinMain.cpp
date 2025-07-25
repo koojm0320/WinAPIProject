@@ -12,7 +12,6 @@ int centerX, centerY;
 RECT _rc1, _rc2;
 
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-//LPTSTR _lpszClass = TEXT("Window API");
 
 int APIENTRY wWinMain(
 	HINSTANCE	hInstance,
@@ -33,7 +32,7 @@ int APIENTRY wWinMain(
 	wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);				// 아이콘
 	wndClass.hInstance = hInstance;									// 식별자 정보
 	wndClass.lpfnWndProc = WndProc;									// 프로시저
-	wndClass.lpszClassName = WINNAME;							// 클래스 이름
+	wndClass.lpszClassName = WINNAME;								// 클래스 이름
 	wndClass.lpszMenuName = NULL;									// 메뉴 이름
 	wndClass.style = CS_HREDRAW | CS_VREDRAW;						// 스타일 (다시 그리기 정보)
 

@@ -1,6 +1,18 @@
 #include "Stdafx.h"
 #include "MainGame.h"
 
+// 멤버 변수 초기화
+MainGame::MainGame() :
+	_bgImage(nullptr), _bgObjImage1(nullptr), _bgObjImage2(nullptr),
+	_panCakeX(0), _panCakeY(0.0f),
+	_panCakeFrameX(0), _panCakeFrameCount(0),
+	_bgX(0.0f), _bgObj1X(0.0f), _bgObj2X(0.0f),
+	_playerState(PlayerState::RUNNING), _groundY(0.0f),
+	_jumpPower(0.0f), _gravity(0.0f), _velocityY(0.0f),
+	_canDoubleJump(false), _landingTime(0.0f), _landingTimer(0.0f)
+{
+}
+
 HRESULT MainGame::init(void)
 {
 	GameNode::init();
@@ -22,6 +34,8 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addFrameImage("더블점프", "Resources/Images/Object/PanCakeDoubleJump.bmp", 1062, 146, 6, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("착지", "Resources/Images/Object/PanCakeLanding.bmp", 150, 126, 1, 1, true, RGB(255, 0, 255));
 
+	IMAGEMANAGER->addFrameImage("타일", "Resources/Images/Object/tile.bmp", 129, 50, 1, 1, true, RGB(255, 0, 255));
+
 
 	_panCakeX = 130;
 	_groundY = WINSIZE_Y - 250;
@@ -36,14 +50,12 @@ HRESULT MainGame::init(void)
 	_gravity = 1.0f;
 	_velocityY = 0.0f;
 	_canDoubleJump = false;
-	_landingTime = 0.15f; // 0.15초간 착지 모션
+	_landingTime = 0.13f;
 	_landingTimer = 0.0f;
 
 
 	_panCakeFrameX = 0;
 	_panCakeFrameCount = 0;
-
-
 
 	RND->init();
 	return S_OK;
@@ -199,6 +211,7 @@ void MainGame::render(HDC hdc)
 
 	_bgObjImage2->render(memDC, (int)_bgObj2X, 0);
 	_bgObjImage2->render(memDC, (int)_bgObj2X + WINSIZE_X, 0);
+
 
 	switch (_playerState)
 	{

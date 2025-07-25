@@ -30,5 +30,7 @@ public:
     // 키 값으로 프레임 렌더링을 요청하는 함수
     void frameRender(std::string strKey, HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY);
     
+    void loopRender(std::string strKey, HDC hdc, const LPRECT drawArea, int offSetX, int offSetY);
+
     ImageManager();
 };

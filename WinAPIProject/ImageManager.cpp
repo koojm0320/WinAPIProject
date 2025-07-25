@@ -64,3 +64,9 @@ void ImageManager::frameRender(std::string strKey, HDC hdc, int destX, int destY
         img->frameRender(hdc, destX, destY, currentFrameX, currentFrameY);
     }
 }
+
+void ImageManager::loopRender(std::string strKey, HDC hdc, const LPRECT drawArea, int offSetX, int offSetY)
+{
+    GImage* img = findImage(strKey);
+    if (img) img->loopRender(hdc, drawArea, offSetX, offSetY);
+}
