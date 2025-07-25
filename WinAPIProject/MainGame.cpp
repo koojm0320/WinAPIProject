@@ -3,11 +3,9 @@
 
 // 멤버 변수 초기화
 MainGame::MainGame() :
-	_bgImage(nullptr), _bgObjImage1(nullptr), _bgObjImage2(nullptr),
 	_panCakeX(0), _panCakeY(0.0f),
 	_panCakeFrameX(0), _panCakeFrameCount(0),
 	_bgX(0.0f), _bgObj1X(0.0f), _bgObj2X(0.0f),
-	_playerState(PlayerState::RUNNING), _groundY(0.0f),
 	_jumpPower(0.0f), _gravity(0.0f), _velocityY(0.0f),
 	_canDoubleJump(false), _landingTime(0.0f), _landingTimer(0.0f)
 {
@@ -16,46 +14,53 @@ MainGame::MainGame() :
 HRESULT MainGame::init(void)
 {
 	GameNode::init();
+	IMAGEMANAGER->init();
 
-	// 배경 이미지 주소값
-	_bgImage = new GImage;
-	_bgImage->init("Resources/Images/BackGround/BackGround.bmp", WINSIZE_X, WINSIZE_Y);
-
-	_bgObjImage1 = new GImage;
-	_bgObjImage1->init("Resources/Images/BackGround/BackGroundObject1.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
-
-	_bgObjImage2 = new GImage;
-	_bgObjImage2->init("Resources/Images/BackGround/BackGroundObject2.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
-
+	// 배경 + 배경요소
+	IMAGEMANAGER->addImage("배경", "Resources/Images/BackGround/BackGround.bmp", WINSIZE_X, WINSIZE_Y);
+	IMAGEMANAGER->addImage("배경요소1", "Resources/Images/BackGround/BackGroundObject1.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("배경요소2", "Resources/Images/BackGround/BackGroundObject2.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("배경요소3", "Resources/Images/BackGround/BackGroundObject3.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
 	
+
+	// 애니메이션
 	IMAGEMANAGER->addFrameImage("기본달리기", "Resources/Images/Object/PanCakeRun.bmp", 181 * 4, 144, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("기본슬라이드", "Resources/Images/Object/PanCakeSlide.bmp", 324, 108, 2, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("점프", "Resources/Images/Object/PanCakeJump.bmp", 334, 140, 2, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("더블점프", "Resources/Images/Object/PanCakeDoubleJump.bmp", 1062, 146, 6, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("착지", "Resources/Images/Object/PanCakeLanding.bmp", 150, 126, 1, 1, true, RGB(255, 0, 255));
 
-	IMAGEMANAGER->addFrameImage("타일", "Resources/Images/Object/tile.bmp", 129, 50, 1, 1, true, RGB(255, 0, 255));
+	// 타일
+	IMAGEMANAGER->addImage("타일", "Resources/Images/Object/tile.bmp", 129, 50, true, RGB(255, 0, 255));
 
 
 	_panCakeX = 130;
-	_groundY = WINSIZE_Y - 250;
-	_panCakeY = _groundY;
+	//_groundY = WINSIZE_Y - 250;
+	_panCakeY = WINSIZE_Y - 250;;
 	_bgX = 0.0f;
 	_bgObj1X = 0.0f;
 	_bgObj2X = 0.0f;
+	_bgObj3X = 0.0f;
 
 	// 물리 변수
 	_playerState = PlayerState::RUNNING;
 	_jumpPower = 18.0f;
-	_gravity = 1.0f;
+	_gravity = 0.97f;
 	_velocityY = 0.0f;
 	_canDoubleJump = false;
-	_landingTime = 0.13f;
+	_landingTime = 0.1f;
 	_landingTimer = 0.0f;
-
 
 	_panCakeFrameX = 0;
 	_panCakeFrameCount = 0;
+	
+	_isDebug = true;
+
+	_mapPosX = 0;
+	for (int i = 0; i < 10; ++i)
+	{
+		_tiles.push_back(RectMake(i * 129, WINSIZE_Y - 100, 129, 50));
+	}
 
 	RND->init();
 	return S_OK;
@@ -65,80 +70,117 @@ void MainGame::release(void)
 {
 	GameNode::release();
 	IMAGEMANAGER->release();
-
-	SAFE_DELETE(_bgImage);
-	SAFE_DELETE(_bgObjImage1);
-	SAFE_DELETE(_bgObjImage2);
 }
 
 void MainGame::update(void)
 {
 	GameNode::update();
 
-	if (KEYMANAGER->isOnceKeyDown(VK_SPACE))
+	// 플레이어 히트박스
+	if (_playerState == PlayerState::SLIDING)
 	{
-		switch (_playerState)
-		{
-		case PlayerState::RUNNING:
-		case PlayerState::SLIDING:
-		case PlayerState::LANDING:
-			_playerState = PlayerState::JUMPING;
-			_velocityY = -_jumpPower;
-			_canDoubleJump = true;
-			_panCakeFrameX = 0; // 점프 애니메이션 프레임 초기화
-			_panCakeFrameCount = 0;
-			break;
-		case PlayerState::JUMPING:
-			if (_canDoubleJump)
-			{
-				_playerState = PlayerState::DOUBLE_JUMPING;
-				_velocityY = -_jumpPower;
-				_canDoubleJump = false;
-				_panCakeFrameX = 0; // 더블 점프 애니메이션 프레임 초기화
-				_panCakeFrameCount = 0;
-			}
-			break;
-		}
-	}
-
-	// === 상태에 따른 로직 처리 ===
-	// 점프 또는 더블 점프 상태일 때 물리 효과 적용
-	if (_playerState == PlayerState::JUMPING || _playerState == PlayerState::DOUBLE_JUMPING)
-	{
-		_velocityY += _gravity;
-		_panCakeY += _velocityY;
-
-		// 땅에 닿았는지 확인
-		if (_panCakeY >= _groundY)
-		{
-			_panCakeY = _groundY;
-			_velocityY = 0;
-			_playerState = PlayerState::LANDING;
-			_landingTimer = _landingTime; // 착지 타이머 시작
-		}
-	}
-	else if (_playerState == PlayerState::LANDING)
-	{
-		// 착지 타이머 감소
-		if (KEYMANAGER->isStayKeyDown(VK_SHIFT))
-		{
-			_playerState = PlayerState::SLIDING;
-			_panCakeFrameX = 0;
-			_panCakeFrameCount = 0;
-
-		}
-		else
-		{
-			_landingTimer -= 1.0f / 60.0f; // 60프레임 기준 시간 감소
-			if (_landingTimer <= 0)
-			{
-				_playerState = PlayerState::RUNNING; // 착지 후 달리기 상태로 전환
-			}
-		}
+		_playerHitbox = RectMakeCenter(_panCakeX + 100, (int)_panCakeY + 100, 100, 80);
 	}
 	else
 	{
-		// 땅에 있을 때 슬라이드 처리
+		_playerHitbox = RectMakeCenter(_panCakeX + 100, (int)_panCakeY + 76, 100, 130);
+
+	}
+
+	_mapPosX = -8.0f; // 타일 이동 속도
+
+	for (size_t i = 0; i < _tiles.size(); )
+	{
+		_tiles[i].left += (int)_mapPosX;
+		_tiles[i].right += (int)_mapPosX;
+
+		// 화면 왼쪽으로 사라진 타일은 제거
+		if (_tiles[i].right < 0)
+		{
+			_tiles.erase(_tiles.begin() + i);
+		}
+		else i++;
+	}
+
+	// 타일 생성
+	if (!_tiles.empty() && _tiles.back().right < WINSIZE_X + 100)
+	{
+		float newX = _tiles.back().right;
+		if (RND->getInt(5) < 4)
+		{
+			_tiles.push_back(RectMake((int)newX, WINSIZE_Y - 100, 129, 50));
+		}
+		else
+		{
+			_tiles.push_back(RectMake((int)newX + RND->getFromIntTo(150, 300), WINSIZE_Y - 100, 129, 50));
+		}
+	}
+
+	// 키 입력 처리
+
+	if (KEYMANAGER->isOnceKeyDown(VK_SPACE))
+	{
+		if ((_playerState == PlayerState::RUNNING || _playerState == PlayerState::SLIDING || _playerState == PlayerState::LANDING))
+		{
+			_playerState = PlayerState::JUMPING;
+			_velocityY = -_jumpPower;
+			_canDoubleJump = true;
+			_panCakeFrameX = 0;
+			_panCakeFrameCount = 0;
+		}
+		else if (_playerState == PlayerState::JUMPING && _canDoubleJump)
+		{
+			_playerState = PlayerState::DOUBLE_JUMPING;
+			_velocityY = -_jumpPower;
+			_canDoubleJump = false;
+			_panCakeFrameX = 0;
+			_panCakeFrameCount = 0;
+		}
+	}
+	// 물리 효과 적용
+	_velocityY += _gravity;
+	_panCakeY += _velocityY;
+
+	// 충돌 처리
+	bool onGround = false;
+	for (auto& tile : _tiles)
+	{
+		RECT playerFeet = RectMake(_playerHitbox.left + 10, _playerHitbox.bottom - 10, (_playerHitbox.right - _playerHitbox.left) - 20, 10);
+		RECT intersection;
+		// 플레이어가 아래로 떨어지는 중에만 타일과 충돌 판정
+		if (_velocityY > 0 && IntersectRect(&intersection, &playerFeet, &tile))
+		{
+			// 플레이어를 타일 바로 위로 이동
+			_panCakeY -= (_playerHitbox.bottom - tile.top);
+			_velocityY = 0;
+			onGround = true;
+
+			// JUMPING 또는 DOUBLE_JUMPING 상태였다면 LANDING으로 변경
+			if ((_playerState == PlayerState::JUMPING || _playerState == PlayerState::DOUBLE_JUMPING))
+			{
+				_playerState = PlayerState::LANDING;
+				_landingTimer = _landingTime;
+			}
+			else if (_playerState == PlayerState::LANDING && KEYMANAGER->isStayKeyDown(VK_SHIFT))
+			{
+				_playerState = PlayerState::SLIDING;
+
+			}
+			break;
+		}
+	}
+
+	// 땅에서의 상태 변화 (착지 타이머, 슬라이드)
+	if (_playerState == PlayerState::LANDING)
+	{
+		_landingTimer -= 1.0f / 60.0f;
+		if (_landingTimer <= 0)
+		{
+			_playerState = PlayerState::RUNNING;
+		}
+	}
+	else if (onGround) // LANDING이 아니면서 땅에 있을 때
+	{
 		if (KEYMANAGER->isStayKeyDown(VK_SHIFT))
 		{
 			if (_playerState == PlayerState::RUNNING)
@@ -156,24 +198,14 @@ void MainGame::update(void)
 		}
 	}
 
+
+
 	// 뒷배경 속도처리
-	_bgX += -1.0f;
-	if (_bgX <= -WINSIZE_X)
-	{
-		_bgX = 0;
-	}
+	_bgX += 2.0f;
+	_bgObj1X += 3.0f;
+	_bgObj2X += 4.0f;
+	_bgObj3X += 8.0f;
 
-	_bgObj1X += -1.5f;
-	if (_bgObj1X <= -WINSIZE_X)
-	{
-		_bgObj1X = 0;
-	}
-
-	_bgObj2X += -2.0f;
-	if (_bgObj2X <= -WINSIZE_X)
-	{		  
-		_bgObj2X = 0;
-	}
 
 	// 각 애니메이션 별 프레임 속도 처리
 	_panCakeFrameCount++;
@@ -203,35 +235,62 @@ void MainGame::render(HDC hdc)
 	PatBlt(memDC, 0, 0, WINSIZE_X, WINSIZE_Y, WHITENESS);
 	// ============
 
-	_bgImage->render(memDC, (int)_bgX, 0);
-	_bgImage->render(memDC, (int)_bgX + WINSIZE_X, 0);
-
-	_bgObjImage1->render(memDC, (int)_bgObj1X, 0);
-	_bgObjImage1->render(memDC, (int)_bgObj1X + WINSIZE_X, 0);
-
-	_bgObjImage2->render(memDC, (int)_bgObj2X, 0);
-	_bgObjImage2->render(memDC, (int)_bgObj2X + WINSIZE_X, 0);
+	RECT rc = RectMake(0, 0, WINSIZE_X, WINSIZE_Y);
 
 
+
+	IMAGEMANAGER->findImage("배경")->loopRender(memDC, &rc, (int)_bgX, 0);
+	IMAGEMANAGER->findImage("배경요소1")->loopRender(memDC, &rc, (int)_bgObj1X, 0);
+	IMAGEMANAGER->findImage("배경요소2")->loopRender(memDC, &rc, (int)_bgObj2X, 0);
+	IMAGEMANAGER->findImage("배경요소3")->loopRender(memDC, &rc, (int)_bgObj3X, 0);
+
+	for (auto& tile : _tiles)
+	{
+		IMAGEMANAGER->findImage("타일")->render(memDC, tile.left, tile.top);
+	}
+
+	int renderY = (int)_panCakeY;
 	switch (_playerState)
 	{
 	case PlayerState::RUNNING:
-		IMAGEMANAGER->frameRender("기본달리기", memDC, _panCakeX, (int)_panCakeY, _panCakeFrameX, 0);
+		IMAGEMANAGER->frameRender("기본달리기", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
 		break;
 	case PlayerState::SLIDING:
-		IMAGEMANAGER->frameRender("기본슬라이드", memDC, _panCakeX, (int)_panCakeY + (144 - 108), _panCakeFrameX, 0);
+		IMAGEMANAGER->frameRender("기본슬라이드", memDC, _panCakeX, renderY + (144 - 108), _panCakeFrameX, 0);
 		break;
 	case PlayerState::JUMPING:
-		IMAGEMANAGER->frameRender("점프", memDC, _panCakeX, (int)_panCakeY + (144 - 140), _panCakeFrameX, 0);
+		IMAGEMANAGER->frameRender("점프", memDC, _panCakeX, renderY + (144 - 140), _panCakeFrameX, 0);
 		break;
 	case PlayerState::DOUBLE_JUMPING:
-		IMAGEMANAGER->frameRender("더블점프", memDC, _panCakeX, (int)_panCakeY + (144 - 146), _panCakeFrameX, 0);
+		IMAGEMANAGER->frameRender("더블점프", memDC, _panCakeX, renderY + (144 - 146), _panCakeFrameX, 0);
 		break;
 	case PlayerState::LANDING:
-		IMAGEMANAGER->frameRender("착지", memDC, _panCakeX, (int)_panCakeY + (144 - 126), _panCakeFrameX, 0);
+		IMAGEMANAGER->frameRender("착지", memDC, _panCakeX, renderY + (144 - 126), _panCakeFrameX, 0);
 		break;
 	}
 
+	if (_isDebug)
+	{
+		HPEN myPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
+		HPEN oldPen = (HPEN)SelectObject(memDC, myPen);
+
+		// 투명한 브러쉬 선택
+		HBRUSH myBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
+		HBRUSH oldBrush = (HBRUSH)SelectObject(memDC, myBrush);
+
+		// 플레이어 히트박스 그리기
+		DrawRectMake(memDC, _playerHitbox);
+
+		// 타일 히트박스 그리기
+		for (auto& tile : _tiles)
+		{
+			DrawRectMake(memDC, tile);
+		}
+
+		SelectObject(memDC, oldPen);
+		SelectObject(memDC, oldBrush);
+		DeleteObject(myPen);
+	}
 
 	// ============
 	this->getBackBuffer()->render(hdc, 0, 0);

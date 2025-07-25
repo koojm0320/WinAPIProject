@@ -14,6 +14,22 @@ void ImageManager::release(void)
     this->deleteAll();
 }
 
+GImage* ImageManager::addImage(std::string strKey, const char* fileName, int width, int height, bool isTrans, COLORREF transColor)
+{
+    GImage* img = findImage(strKey);
+    if (img) return img;
+
+    img = new GImage;
+    if (FAILED(img->init(fileName, width, height, isTrans, transColor)))
+    {
+        SAFE_DELETE(img);
+        return nullptr;
+    }
+
+    _mImageList.insert(make_pair(strKey, img));
+    return img;
+}
+
 // 프레임 이미지를 생성하고 map에 추가
 GImage* ImageManager::addFrameImage(std::string strKey, const char* fileName, int width, int height, int maxFrameX, int maxFrameY, bool isTrans, COLORREF transColor)
 {

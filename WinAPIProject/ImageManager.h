@@ -18,9 +18,9 @@ public:
     HRESULT init(void);
     void release(void); // 모든 이미지 리소스를 해제
 
+    GImage* addImage(std::string strKey, const char* fileName, int width, int height, bool isTrans = false, COLORREF transColor = RGB(0, 0, 0));
     // 프레임 이미지를 추가하는 함수
     GImage* addFrameImage(std::string strKey, const char* fileName, int width, int height, int maxFrameX, int maxFrameY, bool isTrans = false, COLORREF transColor = RGB(0, 0, 0));
-
     // 이미지를 찾아 포인터를 반환하는 함수
     GImage* findImage(std::string strKey);
 

@@ -14,11 +14,6 @@ enum class PlayerState
 class MainGame : public GameNode
 {
 private:
-	GImage* _bgImage;
-	GImage* _bgObjImage1;
-	GImage* _bgObjImage2;
-	GImage* _tileImage;
-
 	int _panCakeX;
 	float _panCakeY;
 	
@@ -28,10 +23,16 @@ private:
 	float _bgX;
 	float _bgObj1X;
 	float _bgObj2X;
+	float _bgObj3X;
 
+	RECT _playerHitbox;
+	std::vector<RECT> _tiles;
+	float _mapPosX;
+
+	bool _isDebug;
 
 	PlayerState _playerState;
-	float _groundY;
+	//float _groundY;
 
 	float _jumpPower;
 	float _gravity;
@@ -41,10 +42,6 @@ private:
 
 	float _landingTime;
 	float _landingTimer;
-
-	// 타일 관련
-	std::vector<std::vector<int>> _tileMap;
-	float _mapPosX;
 
 
 public:
