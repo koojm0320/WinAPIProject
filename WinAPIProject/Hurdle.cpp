@@ -9,23 +9,31 @@ Hurdle::Hurdle(HurdleType type, int x, int y) : _type(type), _frameX(0), _frameC
 	if (_type == HurdleType::LOW)
 	{
 		_image = IMAGEMANAGER->findImage("낮은허들");
-		_rc = RectMake(x + 20, y, 70, 120);
+		_rc = RectMake(x + 20, y + 40, 70, 120);
 	}
-	else
+	else if(_type == HurdleType::HIGH)
 	{
 		_image = IMAGEMANAGER->findImage("높은허들");
-		_rc = RectMake(x + 20, y + 70, 70, 230);
+		_rc = RectMake(x + 20, y + 80, 70, 230);
 	}
+    else if (_type == HurdleType::SPIKE)
+    {
+        _image = IMAGEMANAGER->findImage("스파이크");
+        _rc = RectMake(x, -20, 90, 416);
+        _isReady = false;
+        _animationFinished = true;
+    }
+
 }
 
 Hurdle::~Hurdle()
 {
 }
 
-void Hurdle::update()
+void Hurdle::update(float mapPosX)
 {
     // 1. 허들이 화면 안으로 들어왔고, 아직 애니메이션이 시작되지 않았다면 시작
-    if (!_animationStarted && _rc.right < WINSIZE_X)
+    if (!_animationStarted && _rc.right < WINSIZE_X + 100)
     {
         _animationStarted = true;
     }
@@ -52,7 +60,7 @@ void Hurdle::update()
         // 허들 등장 애니메이션
         else
         {
-            if (_frameCount % 5 == 0)
+            if (_frameCount % 3 == 0)
             {
                 _frameX++;
                 // 낮은 허들의 마지막 프레임에 도달하면
@@ -71,9 +79,8 @@ void Hurdle::update()
         }
     }
 
-    // 3. 허들의 위치는 계속 왼쪽으로 이동
-    _rc.left -= 8;
-    _rc.right -= 8;
+    _rc.left += (int)mapPosX; // 맵의 x축 이동량만큼 함께 이동
+    _rc.right += (int)mapPosX;
 }
 
 void Hurdle::render(HDC hdc)
@@ -86,11 +93,15 @@ void Hurdle::render(HDC hdc)
 	{
 		if (_type == HurdleType::LOW)
 		{
-			IMAGEMANAGER->frameRender("낮은허들", hdc, _rc.left, _rc.top, _frameX, 0);
+			IMAGEMANAGER->frameRender("낮은허들", hdc, _rc.left - 10, _rc.top - 30, _frameX, 0);
 		}
-		else
+		else if (_type == HurdleType::HIGH)
 		{
 			IMAGEMANAGER->frameRender("높은허들", hdc, _rc.left, _rc.top - 70, _frameX, 0);
 		}
+        else if (_type == HurdleType::SPIKE)
+        {
+            _image->render(hdc, _rc.left - 20, _rc.top);
+        }
 	}
 }

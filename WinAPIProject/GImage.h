@@ -73,9 +73,14 @@ public:
 	void frameRender(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY);
 	void loopRender(HDC hdc, const LPRECT drawArea, int offSetX, int offSetY);
 
+	void alphaRender(HDC hdc, int destX, int destY, BYTE alpha);
 
 	inline HDC getMemDC(void) { return _imageInfo->hMemDC; }
 	inline int getMaxFrameX(void) { return _imageInfo->maxFrameX; }
+	inline int getHeight(void) { return _imageInfo->height; }
+
+	inline int getFrameWidth(void) { return _imageInfo->frameWidth; }
+	inline int getFrameHeight(void) { return _imageInfo->frameHeight; }
 
 	GImage();
 	~GImage() {}

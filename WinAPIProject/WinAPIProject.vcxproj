@@ -27,6 +27,7 @@
     <ClInclude Include="ImageManager.h" />
     <ClInclude Include="KeyManager.h" />
     <ClInclude Include="MainGame.h" />
+    <ClInclude Include="ProgressBar.h" />
     <ClInclude Include="RandomFuntion.h" />
     <ClInclude Include="SingletonBase.h" />
     <ClInclude Include="Stdafx.h" />
@@ -39,6 +40,7 @@
     <ClCompile Include="ImageManager.cpp" />
     <ClCompile Include="KeyManager.cpp" />
     <ClCompile Include="MainGame.cpp" />
+    <ClCompile Include="ProgressBar.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>

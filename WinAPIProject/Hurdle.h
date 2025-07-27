@@ -4,7 +4,8 @@
 enum class HurdleType
 {
 	LOW,
-	HIGH
+	HIGH,
+	SPIKE
 };
 
 class Hurdle
@@ -23,7 +24,7 @@ public:
 	Hurdle(HurdleType type, int x, int y);
 	~Hurdle();
 
-	void update();
+	void update(float mapPosX);
 	void render(HDC hdc);
 
 	RECT& getRect() { return _rc; }

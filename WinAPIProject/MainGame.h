@@ -9,7 +9,8 @@ enum class PlayerState
 	JUMPING,
 	DOUBLE_JUMPING,
 	LANDING,
-	HIT
+	HIT,
+	GAMEOVER
 };
 
 class MainGame : public GameNode
@@ -47,6 +48,14 @@ private:
 	HurdleManager* _hurdleManager;
 	bool _isInvincible;
 	float _invincibleTimer;
+
+	bool _hitAnimationFinished;
+	bool _gameOverAnimationFinished;
+
+	ProgressBar* _hpBar;
+	float _currentHp;
+	float _maxHp;
+	bool _isGameOver;
 
 
 public:

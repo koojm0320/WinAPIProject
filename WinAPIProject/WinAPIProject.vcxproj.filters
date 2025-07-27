@@ -55,6 +55,7 @@
     <ClInclude Include="ImageManager.h" />
     <ClInclude Include="Hurdle.h" />
     <ClInclude Include="HurdleManager.h" />
+    <ClInclude Include="ProgressBar.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
@@ -73,6 +74,7 @@
     <ClCompile Include="ImageManager.cpp" />
     <ClCompile Include="Hurdle.cpp" />
     <ClCompile Include="HurdleManager.cpp" />
+    <ClCompile Include="ProgressBar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="구현 목록.txt" />

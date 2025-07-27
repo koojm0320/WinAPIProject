@@ -28,6 +28,7 @@
 #include "KeyManager.h"
 #include "ImageManager.h"
 #include "HurdleManager.h"
+#include "ProgressBar.h"
 
 #define RND RandomFuntion::getSingleton()
 #define KEYMANAGER KeyManager::getSingleton()

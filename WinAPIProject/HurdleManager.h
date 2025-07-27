@@ -10,7 +10,7 @@ private:
 public:
 	HRESULT init();
 	void release();
-	void update();
+	void update(float mapPosX);
 	void render(HDC hdc);
 
 	void createHurdle(HurdleType type, int tileX, int tileY);

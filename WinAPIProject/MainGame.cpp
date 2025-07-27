@@ -35,14 +35,23 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addFrameImage("더블점프", "Resources/Images/Object/PanCakeDoubleJump.bmp", 1062, 146, 6, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("착지", "Resources/Images/Object/PanCakeLanding.bmp", 150, 126, 1, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("충돌", "Resources/Images/Object/PanCakeCollision.bmp", 1200, 158, 6, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("게임오버", "Resources/Images/Object/PanCakeGameOver.bmp", 915, 146, 5, 1, true, RGB(255, 0, 255));
 
 	// 장애물
 	IMAGEMANAGER->addFrameImage("허들준비", "Resources/Images/Object/hurdleReady.bmp", 138, 131, 2, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("낮은허들", "Resources/Images/Object/hurdle.bmp", 388, 148, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("높은허들", "Resources/Images/Object/highHurdle.bmp", 475, 296, 5, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("스파이크", "Resources/Images/Object/spike2.bmp", 137, 416, true, RGB(255, 0, 255));
+
 
 	// 타일
 	IMAGEMANAGER->addImage("타일", "Resources/Images/Object/tile.bmp", 129, 50, true, RGB(255, 0, 255));
+
+	// UI
+	IMAGEMANAGER->addImage("체력아이콘", "Resources/Images/UI/iconHeartLife.bmp", 54, 54, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("체력바배경", "Resources/Images/UI/gaugebgHeart.bmp", 650, 25, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("체력바", "Resources/Images/UI/gaugeHeartOrange.bmp", 644, 23, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("체력바이펙트", "Resources/Images/UI/gaueHeartEffect.bmp", 33, 30, 2, 1, true, RGB(255, 0, 255));
 
 
 	_panCakeX = 130;
@@ -55,7 +64,7 @@ HRESULT MainGame::init(void)
 
 	// 물리 변수
 	_playerState = PlayerState::RUNNING;
-	_jumpPower = 18.0f;
+	_jumpPower = 20.0f;
 	_gravity = 0.97f;
 	_velocityY = 0.0f;
 	_canDoubleJump = false;
@@ -67,8 +76,20 @@ HRESULT MainGame::init(void)
 
 	_isInvincible = false;
 	_invincibleTimer = 0.0f;
-	_isDebug = true;
 	_mapPosX = 0;
+
+	_hitAnimationFinished = false;
+	_gameOverAnimationFinished = false;
+
+	_maxHp = 100.0f;
+	_currentHp = _maxHp;
+	_isGameOver = false;
+
+	_hpBar = new ProgressBar;
+	_hpBar->init(65, 27, 644, 46);
+	_hpBar->setBackImage(IMAGEMANAGER->findImage("체력바이펙트"));
+
+	_isDebug = true;
 
 	loadMap(0.0f);
 
@@ -86,7 +107,49 @@ void MainGame::release(void)
 
 void MainGame::update(void)
 {
+
+
 	GameNode::update();
+
+	if (_isGameOver)
+	{
+		// 게임오버 애니메이션
+		if (!_gameOverAnimationFinished)
+		{
+			if (_panCakeFrameCount++ % 10 == 0)
+			{
+				_panCakeFrameX++;
+				if (_panCakeFrameX >= 4)
+				{
+					_panCakeFrameX = 4;
+					_gameOverAnimationFinished = true;
+				}
+			}
+		}
+
+		// 맵 이동 속도를 0으로 서서히 감소
+		if (_mapPosX < 0.0f)
+		{
+			_mapPosX += 0.05f;
+			if (_mapPosX > 0.0f) _mapPosX = 0.0f;
+		}
+
+		// 감속되는 속도에 맞춰 타일, 장애물, 배경 이동
+		for (size_t i = 0; i < _tiles.size(); i++)
+		{
+			_tiles[i].left += (int)_mapPosX;
+			_tiles[i].right += (int)_mapPosX;
+		}
+		_hurdleManager->update(_mapPosX);
+
+		// 배경 이동 방향 수정
+		_bgX += -_mapPosX * 0.25f;
+		_bgObj1X += -_mapPosX * 0.4f;
+		_bgObj2X += -_mapPosX * 0.6f;
+		_bgObj3X += -_mapPosX;
+
+		return; // 다른 모든 로직 건너뜀
+	}
 
 	// 플레이어 히트박스
 	if (_playerState == PlayerState::SLIDING)
@@ -95,7 +158,7 @@ void MainGame::update(void)
 	}
 	else
 	{
-		_playerHitbox = RectMakeCenter(_panCakeX + 100, (int)_panCakeY + 76, 100, 130);
+		_playerHitbox = RectMakeCenter(_panCakeX + 100, (int)_panCakeY + 76, 70, 130);
 
 	}
 
@@ -120,32 +183,37 @@ void MainGame::update(void)
 		// 마지막 타일의 오른쪽 끝 좌표에 이어서 다음 맵을 로드합니다.
 		loadMap(_tiles.back().right);
 	}
-	_hurdleManager->update();
+	_hurdleManager->update(_mapPosX);
 
 	// 키 입력 처리
 
-	if (KEYMANAGER->isOnceKeyDown(VK_SPACE))
+	if (_playerState != PlayerState::HIT)
 	{
-		if ((_playerState == PlayerState::RUNNING || _playerState == PlayerState::SLIDING || _playerState == PlayerState::LANDING))
+		if (KEYMANAGER->isOnceKeyDown(VK_SPACE))
 		{
-			_playerState = PlayerState::JUMPING;
-			_velocityY = -_jumpPower;
-			_canDoubleJump = true;
-			_panCakeFrameX = 0;
-			_panCakeFrameCount = 0;
-		}
-		else if (_playerState == PlayerState::JUMPING && _canDoubleJump)
-		{
-			_playerState = PlayerState::DOUBLE_JUMPING;
-			_velocityY = -_jumpPower;
-			_canDoubleJump = false;
-			_panCakeFrameX = 0;
-			_panCakeFrameCount = 0;
+			if ((_playerState == PlayerState::RUNNING || _playerState == PlayerState::SLIDING || _playerState == PlayerState::LANDING))
+			{
+				_playerState = PlayerState::JUMPING;
+				_velocityY = -_jumpPower;
+				_canDoubleJump = true;
+				_panCakeFrameX = 0;
+				_panCakeFrameCount = 0;
+			}
+			else if (_playerState == PlayerState::JUMPING && _canDoubleJump)
+			{
+				_playerState = PlayerState::DOUBLE_JUMPING;
+				_velocityY = -_jumpPower;
+				_canDoubleJump = false;
+				_panCakeFrameX = 0;
+				_panCakeFrameCount = 0;
+			}
 		}
 	}
+
 	// 물리 효과 적용
 	_velocityY += _gravity;
 	_panCakeY += _velocityY;
+
 
 	// 충돌 처리
 	bool onGround = false;
@@ -213,11 +281,13 @@ void MainGame::update(void)
 			RECT temp;
 			if (IntersectRect(&temp, &_playerHitbox, &hurdle->getRect()))
 			{
+				_currentHp -= 20.0f;
 				_playerState = PlayerState::HIT;
 				_isInvincible = true;
 				_invincibleTimer = 2.0f; // 2초 무적
 				_panCakeFrameX = 0;
 				_panCakeFrameCount = 0;
+				_hitAnimationFinished = false;
 				break;
 			}
 		}
@@ -225,13 +295,34 @@ void MainGame::update(void)
 
 	if (_isInvincible)
 	{
-		_invincibleTimer -= 1.0f / 60.0f;
+		_invincibleTimer -= 1.0f / 30.0f;
 		if (_invincibleTimer <= 0)
 		{
 			_isInvincible = false;
-			_playerState = PlayerState::RUNNING; // 무적 시간이 끝나면 달리기 상태로 변경
+
+			if (!_isGameOver)
+			{
+				_playerState = PlayerState::RUNNING;
+			}
 		}
 	}
+
+	// 체력 감소량
+	_currentHp -= 0.017f;
+
+	// 체력이 0 이하가 되면 게임오버
+	if (_currentHp <= 0)
+	{
+		_currentHp = 0;
+		_isGameOver = true;
+		_playerState = PlayerState::GAMEOVER;
+		_panCakeFrameX = 0;
+		_panCakeFrameCount = 0;
+	}
+
+	// HP 바 업데이트
+	_hpBar->setGauge(_currentHp, _maxHp);
+	_hpBar->update();
 
 
 
@@ -262,7 +353,20 @@ void MainGame::update(void)
 		_panCakeFrameX = 0;
 		break;
 	case PlayerState::HIT:
-		if (_panCakeFrameCount % 5 == 0) _panCakeFrameX = (_panCakeFrameX + 1) % 6;
+		if (!_hitAnimationFinished)
+		{
+			if (_panCakeFrameCount % 5 == 0)
+			{
+				_panCakeFrameX++;
+				// 마지막 프레임에 도달하면
+				if (_panCakeFrameX >= 5)
+				{
+					_panCakeFrameX = 5; // 마지막 프레임으로 고정
+					_hitAnimationFinished = true; // 애니메이션 종료 플래그 설정
+					_playerState = PlayerState::RUNNING; // 즉시 달리기 상태로 전환하여 조작 가능하게 함
+				}
+			}
+		}
 		break;
 	}
 }
@@ -291,7 +395,7 @@ void MainGame::render(HDC hdc)
 
 
 	int renderY = (int)_panCakeY;
-	if (_isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
+	if (_playerState != PlayerState::GAMEOVER && _isInvincible && (int)(_invincibleTimer * 10) % 2 == 0) // 수정된 코드
 	{
 
 	}
@@ -317,8 +421,14 @@ void MainGame::render(HDC hdc)
 		case PlayerState::HIT:
 			IMAGEMANAGER->frameRender("충돌", memDC, _panCakeX, renderY + (144 - 158), _panCakeFrameX, 0);
 			break;
+		case PlayerState::GAMEOVER:
+			IMAGEMANAGER->frameRender("게임오버", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
+			break;
 		}
 	}
+
+	_hpBar->render(memDC);
+	IMAGEMANAGER->findImage("체력아이콘")->render(memDC, 20, 10);
 
 	if (_isDebug)
 	{
@@ -346,15 +456,14 @@ void MainGame::render(HDC hdc)
 		DeleteObject(myPen);
 	}
 
+
 	// ============
 	this->getBackBuffer()->render(hdc, 0, 0);
 }
 
 void MainGame::loadMap(float startX)
 {
-	// ▼▼▼▼▼▼▼ 여기를 수정해서 맵을 디자인하세요 ▼▼▼▼▼▼▼
-	std::string mapData = "TTTTTHTTTTTTTT-TTTTTLLLTTTTT";
-	// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+	std::string mapData = "TTTTTTTTTSSSTTTTTTLTTLTTLTTTTTTTTTTTTTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTTTTTTTTTTHTTTTTT";
 
 	const int TILE_WIDTH = 129;
 	const int TILE_HEIGHT = 50;
@@ -366,9 +475,8 @@ void MainGame::loadMap(float startX)
 		int currentX = startX + (i * TILE_WIDTH);
 		char objectType = mapData[i];
 
-		if (objectType == 'T' || objectType == 'L' || objectType == 'H')
+		if (objectType == 'T' || objectType == 'L' || objectType == 'H' || objectType == 'S')
 		{
-			// ... (이하 타일 및 허들 생성 코드는 기존과 동일)
 			_tiles.push_back(RectMake(currentX, GROUND_Y, TILE_WIDTH, TILE_HEIGHT));
 			if (objectType == 'L')
 			{
@@ -377,6 +485,10 @@ void MainGame::loadMap(float startX)
 			else if (objectType == 'H')
 			{
 				_hurdleManager->createHurdle(HurdleType::HIGH, currentX, GROUND_Y);
+			}
+			else if (objectType == 'S')
+			{
+				_hurdleManager->createHurdle(HurdleType::SPIKE, currentX, 0);
 			}
 		}
 	}

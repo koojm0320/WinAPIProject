@@ -319,3 +319,15 @@ void GImage::loopRender(HDC hdc, const LPRECT drawArea, int offSetX, int offSetY
 
 
 }
+
+void GImage::alphaRender(HDC hdc, int destX, int destY, BYTE alpha)
+{
+    BLENDFUNCTION bf;
+    bf.BlendOp = AC_SRC_OVER;
+    bf.BlendFlags = 0;
+    bf.SourceConstantAlpha = alpha;
+    bf.AlphaFormat = 0; // AC_SRC_ALPHA
+
+    GdiAlphaBlend(hdc, destX, destY, _imageInfo->width, _imageInfo->height,
+        _imageInfo->hMemDC, 0, 0, _imageInfo->width, _imageInfo->height, bf);
+}
