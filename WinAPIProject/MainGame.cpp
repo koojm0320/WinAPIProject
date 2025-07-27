@@ -18,6 +18,9 @@ HRESULT MainGame::init(void)
 	GameNode::init();
 	IMAGEMANAGER->init();
 
+	_hurdleManager = new HurdleManager();
+	_hurdleManager->init();
+
 	// 배경 + 배경요소
 	IMAGEMANAGER->addImage("배경", "Resources/Images/BackGround/BackGround.bmp", WINSIZE_X, WINSIZE_Y);
 	IMAGEMANAGER->addImage("배경요소1", "Resources/Images/BackGround/BackGroundObject1.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
@@ -61,14 +64,13 @@ HRESULT MainGame::init(void)
 
 	_panCakeFrameX = 0;
 	_panCakeFrameCount = 0;
-	
-	_isDebug = true;
 
+	_isInvincible = false;
+	_invincibleTimer = 0.0f;
+	_isDebug = true;
 	_mapPosX = 0;
-	for (int i = 0; i < 10; ++i)
-	{
-		_tiles.push_back(RectMake(i * 129, WINSIZE_Y - 100, 129, 50));
-	}
+
+	loadMap(0.0f);
 
 	RND->init();
 	return S_OK;
@@ -78,6 +80,8 @@ void MainGame::release(void)
 {
 	GameNode::release();
 	IMAGEMANAGER->release();
+	_hurdleManager->release();
+	SAFE_DELETE(_hurdleManager);
 }
 
 void MainGame::update(void)
@@ -111,18 +115,12 @@ void MainGame::update(void)
 	}
 
 	// 타일 생성
-	if (!_tiles.empty() && _tiles.back().right < WINSIZE_X + 100)
+	if (!_tiles.empty() && _tiles.back().left < WINSIZE_X)
 	{
-		float newX = _tiles.back().right;
-		if (RND->getInt(5) < 4)
-		{
-			_tiles.push_back(RectMake((int)newX, WINSIZE_Y - 100, 129, 50));
-		}
-		else
-		{
-			_tiles.push_back(RectMake((int)newX + RND->getFromIntTo(150, 300), WINSIZE_Y - 100, 129, 50));
-		}
+		// 마지막 타일의 오른쪽 끝 좌표에 이어서 다음 맵을 로드합니다.
+		loadMap(_tiles.back().right);
 	}
+	_hurdleManager->update();
 
 	// 키 입력 처리
 
@@ -207,6 +205,35 @@ void MainGame::update(void)
 	}
 
 
+	// 충돌 처리
+	if (!_isInvincible)
+	{
+		for (auto& hurdle : _hurdleManager->getHurdles())
+		{
+			RECT temp;
+			if (IntersectRect(&temp, &_playerHitbox, &hurdle->getRect()))
+			{
+				_playerState = PlayerState::HIT;
+				_isInvincible = true;
+				_invincibleTimer = 2.0f; // 2초 무적
+				_panCakeFrameX = 0;
+				_panCakeFrameCount = 0;
+				break;
+			}
+		}
+	}
+
+	if (_isInvincible)
+	{
+		_invincibleTimer -= 1.0f / 60.0f;
+		if (_invincibleTimer <= 0)
+		{
+			_isInvincible = false;
+			_playerState = PlayerState::RUNNING; // 무적 시간이 끝나면 달리기 상태로 변경
+		}
+	}
+
+
 
 	// 뒷배경 속도처리
 	_bgX += 2.0f;
@@ -234,6 +261,9 @@ void MainGame::update(void)
 	case PlayerState::LANDING:
 		_panCakeFrameX = 0;
 		break;
+	case PlayerState::HIT:
+		if (_panCakeFrameCount % 5 == 0) _panCakeFrameX = (_panCakeFrameX + 1) % 6;
+		break;
 	}
 }
 
@@ -257,24 +287,37 @@ void MainGame::render(HDC hdc)
 		IMAGEMANAGER->findImage("타일")->render(memDC, tile.left, tile.top);
 	}
 
+	_hurdleManager->render(memDC);
+
+
 	int renderY = (int)_panCakeY;
-	switch (_playerState)
+	if (_isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
 	{
-	case PlayerState::RUNNING:
-		IMAGEMANAGER->frameRender("기본달리기", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
-		break;
-	case PlayerState::SLIDING:
-		IMAGEMANAGER->frameRender("기본슬라이드", memDC, _panCakeX, renderY + (144 - 108), _panCakeFrameX, 0);
-		break;
-	case PlayerState::JUMPING:
-		IMAGEMANAGER->frameRender("점프", memDC, _panCakeX, renderY + (144 - 140), _panCakeFrameX, 0);
-		break;
-	case PlayerState::DOUBLE_JUMPING:
-		IMAGEMANAGER->frameRender("더블점프", memDC, _panCakeX, renderY + (144 - 146), _panCakeFrameX, 0);
-		break;
-	case PlayerState::LANDING:
-		IMAGEMANAGER->frameRender("착지", memDC, _panCakeX, renderY + (144 - 126), _panCakeFrameX, 0);
-		break;
+
+	}
+	else
+	{
+		switch (_playerState)
+		{
+		case PlayerState::RUNNING:
+			IMAGEMANAGER->frameRender("기본달리기", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
+			break;
+		case PlayerState::SLIDING:
+			IMAGEMANAGER->frameRender("기본슬라이드", memDC, _panCakeX, renderY + (144 - 108), _panCakeFrameX, 0);
+			break;
+		case PlayerState::JUMPING:
+			IMAGEMANAGER->frameRender("점프", memDC, _panCakeX, renderY + (144 - 140), _panCakeFrameX, 0);
+			break;
+		case PlayerState::DOUBLE_JUMPING:
+			IMAGEMANAGER->frameRender("더블점프", memDC, _panCakeX, renderY + (144 - 146), _panCakeFrameX, 0);
+			break;
+		case PlayerState::LANDING:
+			IMAGEMANAGER->frameRender("착지", memDC, _panCakeX, renderY + (144 - 126), _panCakeFrameX, 0);
+			break;
+		case PlayerState::HIT:
+			IMAGEMANAGER->frameRender("충돌", memDC, _panCakeX, renderY + (144 - 158), _panCakeFrameX, 0);
+			break;
+		}
 	}
 
 	if (_isDebug)
@@ -294,7 +337,10 @@ void MainGame::render(HDC hdc)
 		{
 			DrawRectMake(memDC, tile);
 		}
-
+		for (auto& hurdle : _hurdleManager->getHurdles())
+		{
+			DrawRectMake(memDC, hurdle->getRect());
+		}
 		SelectObject(memDC, oldPen);
 		SelectObject(memDC, oldBrush);
 		DeleteObject(myPen);
@@ -302,4 +348,36 @@ void MainGame::render(HDC hdc)
 
 	// ============
 	this->getBackBuffer()->render(hdc, 0, 0);
+}
+
+void MainGame::loadMap(float startX)
+{
+	// ▼▼▼▼▼▼▼ 여기를 수정해서 맵을 디자인하세요 ▼▼▼▼▼▼▼
+	std::string mapData = "TTTTTHTTTTTTTT-TTTTTLLLTTTTT";
+	// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+	const int TILE_WIDTH = 129;
+	const int TILE_HEIGHT = 50;
+	const int GROUND_Y = WINSIZE_Y - 100;
+
+	for (size_t i = 0; i < mapData.length(); ++i)
+	{
+		// T(타일), L(낮은 허들), H(높은 허들)일 경우 타일을 생성
+		int currentX = startX + (i * TILE_WIDTH);
+		char objectType = mapData[i];
+
+		if (objectType == 'T' || objectType == 'L' || objectType == 'H')
+		{
+			// ... (이하 타일 및 허들 생성 코드는 기존과 동일)
+			_tiles.push_back(RectMake(currentX, GROUND_Y, TILE_WIDTH, TILE_HEIGHT));
+			if (objectType == 'L')
+			{
+				_hurdleManager->createHurdle(HurdleType::LOW, currentX, GROUND_Y);
+			}
+			else if (objectType == 'H')
+			{
+				_hurdleManager->createHurdle(HurdleType::HIGH, currentX, GROUND_Y);
+			}
+		}
+	}
 }

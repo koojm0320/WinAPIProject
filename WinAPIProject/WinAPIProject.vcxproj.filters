@@ -53,6 +53,8 @@
       <Filter>API Framework\DesignPattern\Singleton</Filter>
     </ClInclude>
     <ClInclude Include="ImageManager.h" />
+    <ClInclude Include="Hurdle.h" />
+    <ClInclude Include="HurdleManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
@@ -69,6 +71,8 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="ImageManager.cpp" />
+    <ClCompile Include="Hurdle.cpp" />
+    <ClCompile Include="HurdleManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="구현 목록.txt" />

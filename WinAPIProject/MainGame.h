@@ -8,7 +8,8 @@ enum class PlayerState
 	SLIDING,
 	JUMPING,
 	DOUBLE_JUMPING,
-	LANDING
+	LANDING,
+	HIT
 };
 
 class MainGame : public GameNode
@@ -43,6 +44,10 @@ private:
 	float _landingTime;
 	float _landingTimer;
 
+	HurdleManager* _hurdleManager;
+	bool _isInvincible;
+	float _invincibleTimer;
+
 
 public:
 	MainGame();
@@ -52,5 +57,11 @@ public:
 	void release(void) override;
 	void update(void) override;
 	void render(HDC hdc) override;
+
+private:
+	//void loadMap();
+	//void resetMap();
+	void loadMap(float startX); // 파라미터(시작 X좌표)를 받도록 수정
+
 };
 

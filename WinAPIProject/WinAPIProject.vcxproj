@@ -22,6 +22,8 @@
     <ClInclude Include="CommonMacroFuntion.h" />
     <ClInclude Include="GameNode.h" />
     <ClInclude Include="GImage.h" />
+    <ClInclude Include="Hurdle.h" />
+    <ClInclude Include="HurdleManager.h" />
     <ClInclude Include="ImageManager.h" />
     <ClInclude Include="KeyManager.h" />
     <ClInclude Include="MainGame.h" />
@@ -32,6 +34,8 @@
   <ItemGroup>
     <ClCompile Include="GameNode.cpp" />
     <ClCompile Include="GImage.cpp" />
+    <ClCompile Include="Hurdle.cpp" />
+    <ClCompile Include="HurdleManager.cpp" />
     <ClCompile Include="ImageManager.cpp" />
     <ClCompile Include="KeyManager.cpp" />
     <ClCompile Include="MainGame.cpp" />
