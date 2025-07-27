@@ -5,9 +5,11 @@
 MainGame::MainGame() :
 	_panCakeX(0), _panCakeY(0.0f),
 	_panCakeFrameX(0), _panCakeFrameCount(0),
-	_bgX(0.0f), _bgObj1X(0.0f), _bgObj2X(0.0f),
+	_bgX(0.0f), _bgObj1X(0.0f), _bgObj2X(0.0f), _bgObj3X(0.0f),
 	_jumpPower(0.0f), _gravity(0.0f), _velocityY(0.0f),
-	_canDoubleJump(false), _landingTime(0.0f), _landingTimer(0.0f)
+	_canDoubleJump(false), _landingTime(0.0f), _landingTimer(0.0f),
+	_isDebug(false), _mapPosX(0.0f), _playerHitbox(RectMake(0, 0, 0, 0))
+
 {
 }
 
@@ -29,6 +31,12 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addFrameImage("점프", "Resources/Images/Object/PanCakeJump.bmp", 334, 140, 2, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("더블점프", "Resources/Images/Object/PanCakeDoubleJump.bmp", 1062, 146, 6, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("착지", "Resources/Images/Object/PanCakeLanding.bmp", 150, 126, 1, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("충돌", "Resources/Images/Object/PanCakeCollision.bmp", 1200, 158, 6, 1, true, RGB(255, 0, 255));
+
+	// 장애물
+	IMAGEMANAGER->addFrameImage("허들준비", "Resources/Images/Object/hurdleReady.bmp", 138, 131, 2, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("낮은허들", "Resources/Images/Object/hurdle.bmp", 388, 148, 4, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("높은허들", "Resources/Images/Object/highHurdle.bmp", 475, 296, 5, 1, true, RGB(255, 0, 255));
 
 	// 타일
 	IMAGEMANAGER->addImage("타일", "Resources/Images/Object/tile.bmp", 129, 50, true, RGB(255, 0, 255));
