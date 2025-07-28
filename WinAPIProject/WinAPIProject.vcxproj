@@ -25,6 +25,8 @@
     <ClInclude Include="Hurdle.h" />
     <ClInclude Include="HurdleManager.h" />
     <ClInclude Include="ImageManager.h" />
+    <ClInclude Include="Item.h" />
+    <ClInclude Include="ItemManager.h" />
     <ClInclude Include="KeyManager.h" />
     <ClInclude Include="MainGame.h" />
     <ClInclude Include="ProgressBar.h" />
@@ -38,6 +40,8 @@
     <ClCompile Include="Hurdle.cpp" />
     <ClCompile Include="HurdleManager.cpp" />
     <ClCompile Include="ImageManager.cpp" />
+    <ClCompile Include="Item.cpp" />
+    <ClCompile Include="ItemManager.cpp" />
     <ClCompile Include="KeyManager.cpp" />
     <ClCompile Include="MainGame.cpp" />
     <ClCompile Include="ProgressBar.cpp" />

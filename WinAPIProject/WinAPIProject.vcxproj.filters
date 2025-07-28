@@ -4,9 +4,6 @@
     <Filter Include="WinMain">
       <UniqueIdentifier>{1b926b63-ae2b-401a-a2dc-60c3c39e289d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ManagerClass">
-      <UniqueIdentifier>{9501df6c-0e02-4839-b44b-6255594278d2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Manager">
       <UniqueIdentifier>{91762831-98ea-4704-8007-60b68ff658be}</UniqueIdentifier>
     </Filter>
@@ -28,15 +25,29 @@
     <Filter Include="API Framework\DesignPattern\Singleton">
       <UniqueIdentifier>{06d064fb-a8ef-48cc-866b-8e2b163d431c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Item">
+      <UniqueIdentifier>{8b5d1952-9c90-49d8-9a3a-aae1d5819e89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object">
+      <UniqueIdentifier>{bf94e325-ada5-4e5d-addf-79d0ef7fce6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{537f66c6-3934-42dc-a8ed-c3a94e0f2347}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Image">
+      <UniqueIdentifier>{9043a7b5-6845-4fa1-bd7d-d9e477ba4fd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainGame">
+      <UniqueIdentifier>{9501df6c-0e02-4839-b44b-6255594278d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Stdafx.h">
       <Filter>API Framework\PCH</Filter>
     </ClInclude>
     <ClInclude Include="MainGame.h">
-      <Filter>ManagerClass</Filter>
+      <Filter>MainGame</Filter>
     </ClInclude>
-    <ClInclude Include="GImage.h" />
     <ClInclude Include="KeyManager.h">
       <Filter>Manager</Filter>
     </ClInclude>
@@ -52,29 +63,62 @@
     <ClInclude Include="SingletonBase.h">
       <Filter>API Framework\DesignPattern\Singleton</Filter>
     </ClInclude>
-    <ClInclude Include="ImageManager.h" />
-    <ClInclude Include="Hurdle.h" />
-    <ClInclude Include="HurdleManager.h" />
-    <ClInclude Include="ProgressBar.h" />
+    <ClInclude Include="Item.h">
+      <Filter>Item</Filter>
+    </ClInclude>
+    <ClInclude Include="Hurdle.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageManager.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="GImage.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressBar.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="HurdleManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ItemManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
       <Filter>WinMain</Filter>
     </ClCompile>
     <ClCompile Include="MainGame.cpp">
-      <Filter>ManagerClass</Filter>
+      <Filter>MainGame</Filter>
     </ClCompile>
-    <ClCompile Include="GImage.cpp" />
     <ClCompile Include="KeyManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
     <ClCompile Include="GameNode.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="ImageManager.cpp" />
-    <ClCompile Include="Hurdle.cpp" />
-    <ClCompile Include="HurdleManager.cpp" />
-    <ClCompile Include="ProgressBar.cpp" />
+    <ClCompile Include="Item.cpp">
+      <Filter>Item</Filter>
+    </ClCompile>
+    <ClCompile Include="Hurdle.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressBar.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageManager.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="GImage.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="HurdleManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ItemManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="구현 목록.txt" />

@@ -1,5 +1,7 @@
 #include "Stdafx.h"
 #include "MainGame.h"
+#include "ItemManager.h"
+
 
 // ¸â¹ö º¯¼ö ÃÊ±âÈ­
 MainGame::MainGame() :
@@ -20,6 +22,9 @@ HRESULT MainGame::init(void)
 
 	_hurdleManager = new HurdleManager();
 	_hurdleManager->init();
+
+	_itemManager = new ItemManager();
+	_itemManager->init();
 
 	// ¹è°æ + ¹è°æ¿ä¼Ò
 	IMAGEMANAGER->addImage("¹è°æ", "Resources/Images/BackGround/BackGround.bmp", WINSIZE_X, WINSIZE_Y);
@@ -53,6 +58,11 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addImage("Ã¼·Â¹Ù", "Resources/Images/UI/gaugeHeartOrange.bmp", 644, 23, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("Ã¼·Â¹ÙÀÌÆåÆ®", "Resources/Images/UI/gaueHeartEffect.bmp", 33, 30, 2, 1, true, RGB(255, 0, 255));
 
+	// Á©¸®
+	IMAGEMANAGER->addImage("Á©¸®", "Resources/Images/Object/jelly.bmp", 25, 34, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("Á©¸®ÀÌÆåÆ®", "Resources/Images/Effect/jellyEffect.bmp", 86, 46, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("°õÁ©¸®ÀÌÆåÆ®", "Resources/Images/Effect/jellBearEffect.bmp", 86, 46, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("°ÔÀÓ¿À¹ö", "Resources/Images/Object/bearJelly.bmp", 165, 51, 3, 1, true, RGB(255, 0, 255));
 
 	_panCakeX = 130;
 	//_groundY = WINSIZE_Y - 250;
@@ -103,6 +113,8 @@ void MainGame::release(void)
 	IMAGEMANAGER->release();
 	_hurdleManager->release();
 	SAFE_DELETE(_hurdleManager);
+	_itemManager->release();
+	SAFE_DELETE(_itemManager);
 }
 
 void MainGame::update(void)
@@ -141,6 +153,9 @@ void MainGame::update(void)
 			_tiles[i].right += (int)_mapPosX;
 		}
 		_hurdleManager->update(_mapPosX);
+
+		_itemManager->update(_mapPosX);
+		_itemManager->checkCollision(_playerHitbox);
 
 		// ¹è°æ ÀÌµ¿ ¹æÇâ ¼öÁ¤
 		_bgX += -_mapPosX * 0.25f;
@@ -313,7 +328,7 @@ void MainGame::update(void)
 	{
 		_currentHp = 0;
 		_isGameOver = true;
-		_playerState = PlayerState::GAMEOVER;
+		_playerState = PlayerState::GAMEOVER; 
 		_panCakeFrameX = 0;
 		_panCakeFrameCount = 0;
 	}
@@ -390,6 +405,7 @@ void MainGame::render(HDC hdc)
 	}
 
 	_hurdleManager->render(memDC);
+	_itemManager->render(memDC);
 
 
 	int renderY = (int)_panCakeY;
@@ -490,4 +506,6 @@ void MainGame::loadMap(float startX)
 			}
 		}
 	}
+
+	_itemManager->createItems(_tiles, _hurdleManager->getHurdles());
 }

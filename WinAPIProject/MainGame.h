@@ -1,6 +1,7 @@
 #pragma once
 #include "Stdafx.h"
 #include "GameNode.h"
+#include "ItemManager.h"
 
 enum class PlayerState
 {
@@ -56,6 +57,8 @@ private:
 	float _currentHp;
 	float _maxHp;
 	bool _isGameOver;
+
+	ItemManager* _itemManager;
 
 
 public:
