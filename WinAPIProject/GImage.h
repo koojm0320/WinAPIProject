@@ -75,6 +75,9 @@ public:
 
 	void alphaRender(HDC hdc, int destX, int destY, BYTE alpha);
 
+	void alphaRenderWithTransparency(HDC hdc, int destX, int destY, BYTE alpha);
+
+
 	inline HDC getMemDC(void) { return _imageInfo->hMemDC; }
 	inline int getMaxFrameX(void) { return _imageInfo->maxFrameX; }
 	inline int getHeight(void) { return _imageInfo->height; }

@@ -32,5 +32,6 @@ public:
 	void eat() { _isEaten = true; }
 	bool isEaten() { return _isEaten; }
 	RECT getRect() { return _rc; }
+	bool isFinished() { return _isEaten && _alpha <= 0; }
 };
 

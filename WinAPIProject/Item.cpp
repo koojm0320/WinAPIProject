@@ -41,7 +41,7 @@ void Item::update(float mapPosX)
 
 	if (_isEaten && _alpha > 0)
 	{
-		_alpha -= 15;
+		_alpha -= 10;
 		if (_alpha < 0) _alpha = 0;
 	}
 }
@@ -54,6 +54,6 @@ void Item::render(HDC hdc)
 	}
 	else if (_alpha > 0 && _effectImage)
 	{
-		_effectImage->alphaRender(hdc, _rc.left, _rc.top, _alpha);
+		_effectImage->alphaRenderWithTransparency(hdc, _rc.left, _rc.top, _alpha);
 	}
 }

@@ -14,7 +14,7 @@ public:
 	void update(float mapPosX);
 	void render(HDC hdc);
 
-	void createItems(const std::vector<RECT>& tiles, const std::vector<Hurdle*>& hurdles);
+	void createItems(const std::string& jellyData, float startX);
 	void checkCollision(const RECT& playerRC);
 
 };

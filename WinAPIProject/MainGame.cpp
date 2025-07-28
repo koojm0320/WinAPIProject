@@ -31,7 +31,6 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addImage("배경요소1", "Resources/Images/BackGround/BackGroundObject1.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("배경요소2", "Resources/Images/BackGround/BackGroundObject2.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("배경요소3", "Resources/Images/BackGround/BackGroundObject3.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
-	
 
 	// 애니메이션
 	IMAGEMANAGER->addFrameImage("기본달리기", "Resources/Images/Object/PanCakeRun.bmp", 181 * 4, 144, 4, 1, true, RGB(255, 0, 255));
@@ -57,12 +56,13 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addImage("체력바배경", "Resources/Images/UI/gaugebgHeart.bmp", 650, 25, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("체력바", "Resources/Images/UI/gaugeHeartOrange.bmp", 644, 23, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("체력바이펙트", "Resources/Images/UI/gaueHeartEffect.bmp", 33, 30, 2, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("데미지", "Resources/Images/UI/damage.bmp", WINSIZE_X, WINSIZE_Y, true, RGB(255, 0, 255));
 
 	// 젤리
 	IMAGEMANAGER->addImage("젤리", "Resources/Images/Object/jelly.bmp", 25, 34, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("젤리이펙트", "Resources/Images/Effect/jellyEffect.bmp", 86, 46, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("곰젤리이펙트", "Resources/Images/Effect/jellBearEffect.bmp", 86, 46, true, RGB(255, 0, 255));
-	IMAGEMANAGER->addFrameImage("게임오버", "Resources/Images/Object/bearJelly.bmp", 165, 51, 3, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("곰젤리", "Resources/Images/Object/bearJelly.bmp", 55, 51, true, RGB(255, 0, 255));
 
 	_panCakeX = 130;
 	//_groundY = WINSIZE_Y - 250;
@@ -153,19 +153,19 @@ void MainGame::update(void)
 			_tiles[i].right += (int)_mapPosX;
 		}
 		_hurdleManager->update(_mapPosX);
-
 		_itemManager->update(_mapPosX);
-		_itemManager->checkCollision(_playerHitbox);
-
+		
 		// 배경 이동 방향 수정
 		_bgX += -_mapPosX * 0.25f;
 		_bgObj1X += -_mapPosX * 0.4f;
 		_bgObj2X += -_mapPosX * 0.6f;
-		_bgObj3X += -_mapPosX;
+		_bgObj3X += -_mapPosX * 0.8f;
 
 		return; // 다른 모든 로직 건너뜀
 	}
 
+	_itemManager->update(_mapPosX);
+	_itemManager->checkCollision(_playerHitbox);
 	// 플레이어 히트박스
 	if (_playerState == PlayerState::SLIDING)
 	{
@@ -477,12 +477,14 @@ void MainGame::render(HDC hdc)
 
 void MainGame::loadMap(float startX)
 {
-	std::string mapData = "TTTTTTTTTSSSTTTTTTLTTLTTLTTTTTTTTTTTTTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTTTTTTTTTTHTTTTTT";
+	std::string jellyData = "TTTTTTTTTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTTTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
+	std::string mapData = "TTTTTTTTTSSSTTTTTTLTTLTTLTTTTTTTTTTTTTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTT";
 
 	const int TILE_WIDTH = 129;
 	const int TILE_HEIGHT = 50;
 	const int GROUND_Y = WINSIZE_Y - 100;
 
+	std::vector<RECT> currentTiles;
 	for (size_t i = 0; i < mapData.length(); ++i)
 	{
 		// T(타일), L(낮은 허들), H(높은 허들)일 경우 타일을 생성
@@ -491,7 +493,11 @@ void MainGame::loadMap(float startX)
 
 		if (objectType == 'T' || objectType == 'L' || objectType == 'H' || objectType == 'S')
 		{
-			_tiles.push_back(RectMake(currentX, GROUND_Y, TILE_WIDTH, TILE_HEIGHT));
+			// _tiles.push_back(RectMake(currentX, GROUND_Y, TILE_WIDTH, TILE_HEIGHT));
+			RECT tileRect = RectMake(currentX, GROUND_Y, TILE_WIDTH, TILE_HEIGHT);
+			_tiles.push_back(tileRect);
+			currentTiles.push_back(tileRect);
+
 			if (objectType == 'L')
 			{
 				_hurdleManager->createHurdle(HurdleType::LOW, currentX, GROUND_Y);
@@ -506,6 +512,5 @@ void MainGame::loadMap(float startX)
 			}
 		}
 	}
-
-	_itemManager->createItems(_tiles, _hurdleManager->getHurdles());
+	_itemManager->createItems(jellyData, startX);
 }

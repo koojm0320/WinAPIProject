@@ -21,7 +21,7 @@ void ItemManager::update(float mapPosX)
 	{
 		_items[i]->update(mapPosX);
 
-		if (_items[i]->getRect().right < 0)
+		if (_items[i]->getRect().right < 0 || _items[i]->isFinished())
 		{
 			SAFE_DELETE(_items[i]);
 			_items.erase(_items.begin() + i);
@@ -41,38 +41,100 @@ void ItemManager::render(HDC hdc)
 	}
 }
 
-void ItemManager::createItems(const std::vector<RECT>& tiles, const std::vector<Hurdle*>& hurdles)
+
+
+void ItemManager::createItems(const std::string& jellyData, float startX)
 {
-	// 타일 위에 일반 젤리 생성
-	for (const auto& tile : tiles)
-	{
-		for (int i = 0; i < 5; ++i)
-		{
-			Item* newItem = new Item(); // new Item()으로 변경
-			newItem->init(ItemType::JELLY_NORMAL, tile.left + i * 25, tile.top - 20);
-			_items.push_back(newItem);
-		}
-	}
-	// 장애물 위에 곰젤리 생성
-	for (const auto& hurdle : hurdles)
-	{
-		Item* newItem = new Item(); // new Item()으로 변경
-		newItem->init(ItemType::JELLY_BEAR, hurdle->getRect().left + 20, hurdle->getRect().top - 20);
-		_items.push_back(newItem);
-	}
+    const int TILE_WIDTH = 129;
+    const int GROUND_Y = WINSIZE_Y - 100;
+
+    for (size_t i = 0; i < jellyData.length(); ++i)
+    {
+        int currentX = startX + (i * TILE_WIDTH);
+        char jellyType = jellyData[i];
+
+        switch (jellyType)
+        {
+        case 'T': // 일반 직선 젤리
+        {
+            for (int j = 0; j < 3; ++j)
+            {
+                Item* newItem = new Item();
+                newItem->init(ItemType::JELLY_NORMAL, currentX + j * 42, GROUND_Y - 70);
+                _items.push_back(newItem);
+            }
+            break;
+        }
+        case 'L': // 낮은 포물선
+        {
+            int jellyCount = 8;
+            float arcHeight = 120.0f;
+            int arcWidth = TILE_WIDTH * 2;
+
+            for (int j = 0; j < jellyCount; ++j)
+            {
+                float progress = static_cast<float>(j) / (jellyCount - 1);
+                float parabolaX = currentX + progress * arcWidth;
+                float parabolaY = -4 * arcHeight * progress * (progress - 1.0f);
+
+                Item* newItem = new Item();
+                newItem->init(ItemType::JELLY_NORMAL, parabolaX - 90, GROUND_Y - 120 - parabolaY);
+                _items.push_back(newItem);
+            }
+            break;
+        }
+        case 'H': // 높은 포물선
+        {
+            int jellyCount = 12;
+            float arcHeight = 220.0f;
+            int arcWidth = TILE_WIDTH * 2; // 높은 포물선은 더 넓게
+
+            for (int j = 0; j < jellyCount; ++j)
+            {
+                float progress = static_cast<float>(j) / (jellyCount - 1);
+                float parabolaX = currentX + progress * arcWidth;
+                float parabolaY = -4 * arcHeight * progress * (progress - 1.0f);
+
+                Item* newItem = new Item();
+                newItem->init(ItemType::JELLY_NORMAL, parabolaX - 90, GROUND_Y - 250 - parabolaY);
+                _items.push_back(newItem);
+            }
+            break;
+        }
+        case 'S': // 곰젤리
+        {
+            Item* newItem = new Item();
+            newItem->init(ItemType::JELLY_BEAR, currentX + (TILE_WIDTH / 2) - 45, GROUND_Y - 80);
+            _items.push_back(newItem);
+            break;
+        }
+        case '-': // 공백
+        default:
+            // 아무것도 생성하지 않음
+            break;
+        }
+    }
 }
+
 
 void ItemManager::checkCollision(const RECT& playerRC)
 {
-	for (auto& item : _items)
-	{
-		if (!item->isEaten())
-		{
-			RECT temp;
-			if (IntersectRect(&temp, &playerRC, &item->getRect()))
-			{
-				item->eat();
-			}
-		}
-	}
+    for (auto& item : _items)
+    {
+        if (!item->isEaten())
+        {
+            RECT jellyHitbox = playerRC;
+
+            int shiftAmount = 80;
+            jellyHitbox.left -= shiftAmount;
+            jellyHitbox.right -= shiftAmount;
+
+
+            RECT temp;
+            if (IntersectRect(&temp, &jellyHitbox, &item->getRect()))
+            {
+                item->eat();
+            }
+        }
+    }
 }
