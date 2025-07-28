@@ -29,10 +29,10 @@ void ProgressBar::update()
 	if (_effectImage)
 	{
 		_effectFrameCount++;
-		// 4프레임마다 다음 이미지로 변경 (속도 조절 가능)
+		// 프레임 속도
 		if (_effectFrameCount % 4 == 0)
 		{
-			_effectFrameX = (_effectFrameX + 1) % (_effectImage->getMaxFrameX() + 1); // 수정된 코드
+			_effectFrameX = (_effectFrameX + 1) % (_effectImage->getMaxFrameX() + 1);
 		}
 	}
 }
@@ -45,7 +45,6 @@ void ProgressBar::render(HDC hdc)
 
 	if (_effectImage)
 	{
-		// 이펙트 이미지의 중앙이 체력 바 끝에 오도록 위치를 계산합니다.
 		int effectX = _rc.left + _width - (_effectImage->getFrameWidth() / 2);
 		// Y좌표를 체력 바의 세로 중앙에 맞춥니다.
 		int effectY = _rc.top + (_rc.bottom - _rc.top) / 2 - (_effectImage->getFrameHeight() / 2 + 10);
@@ -56,6 +55,5 @@ void ProgressBar::render(HDC hdc)
 
 void ProgressBar::setGauge(float currentGauge, float maxGauge)
 {
-	// 3. 너비 계산 공식을 올바르게 수정합니다.
 	_width = (currentGauge / maxGauge) * (_rc.right - _rc.left);
 }

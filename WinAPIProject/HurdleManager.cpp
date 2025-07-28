@@ -42,7 +42,6 @@ void HurdleManager::render(HDC hdc)
 
 void HurdleManager::createHurdle(HurdleType type, int tileX, int tileY)
 {
-	// 파라미터로 받은 타입에 따라 y좌표 계산 후 허들 생성
 	int yPos = (type == HurdleType::LOW) ? tileY - 148 : tileY - 296;
 	_hurdles.push_back(new Hurdle(type, tileX, yPos));
 }

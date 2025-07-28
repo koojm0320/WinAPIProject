@@ -159,7 +159,6 @@ void MainGame::update(void)
 	else
 	{
 		_playerHitbox = RectMakeCenter(_panCakeX + 100, (int)_panCakeY + 76, 70, 130);
-
 	}
 
 	_mapPosX = -8.0f; // 타일 이동 속도
@@ -180,7 +179,6 @@ void MainGame::update(void)
 	// 타일 생성
 	if (!_tiles.empty() && _tiles.back().left < WINSIZE_X)
 	{
-		// 마지막 타일의 오른쪽 끝 좌표에 이어서 다음 맵을 로드합니다.
 		loadMap(_tiles.back().right);
 	}
 	_hurdleManager->update(_mapPosX);
@@ -244,7 +242,7 @@ void MainGame::update(void)
 		}
 	}
 
-	// 땅에서의 상태 변화 (착지 타이머, 슬라이드)
+	// 시프트 입력시 착지 모션 스킵
 	if (_playerState == PlayerState::LANDING)
 	{
 		_landingTimer -= 1.0f / 60.0f;
@@ -253,7 +251,7 @@ void MainGame::update(void)
 			_playerState = PlayerState::RUNNING;
 		}
 	}
-	else if (onGround) // LANDING이 아니면서 땅에 있을 때
+	else if (onGround)
 	{
 		if (KEYMANAGER->isStayKeyDown(VK_SHIFT))
 		{
@@ -284,7 +282,7 @@ void MainGame::update(void)
 				_currentHp -= 20.0f;
 				_playerState = PlayerState::HIT;
 				_isInvincible = true;
-				_invincibleTimer = 2.0f; // 2초 무적
+				_invincibleTimer = 2.5f; // 무적
 				_panCakeFrameX = 0;
 				_panCakeFrameCount = 0;
 				_hitAnimationFinished = false;
@@ -395,9 +393,9 @@ void MainGame::render(HDC hdc)
 
 
 	int renderY = (int)_panCakeY;
-	if (_playerState != PlayerState::GAMEOVER && _isInvincible && (int)(_invincibleTimer * 10) % 2 == 0) // 수정된 코드
+	if (_playerState != PlayerState::GAMEOVER && _isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
 	{
-
+		// 아무것도 안보이게
 	}
 	else
 	{
