@@ -119,8 +119,6 @@ void MainGame::release(void)
 
 void MainGame::update(void)
 {
-
-
 	GameNode::update();
 
 	if (_isGameOver)
@@ -324,13 +322,16 @@ void MainGame::update(void)
 	_currentHp -= 0.017f;
 
 	// 체력이 0 이하가 되면 게임오버
-	if (_currentHp <= 0)
+	if (_currentHp <= 0 && !_isGameOver)
 	{
 		_currentHp = 0;
 		_isGameOver = true;
 		_playerState = PlayerState::GAMEOVER; 
 		_panCakeFrameX = 0;
 		_panCakeFrameCount = 0;
+
+		_isInvincible = true;
+		_invincibleTimer = 9999.0f;
 	}
 
 	// HP 바 업데이트
