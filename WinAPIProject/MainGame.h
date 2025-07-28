@@ -60,6 +60,8 @@ private:
 
 	ItemManager* _itemManager;
 
+	bool _isShowingDamage;
+	float _damageAlpha;
 
 public:
 	MainGame();

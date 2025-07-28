@@ -10,7 +10,8 @@ MainGame::MainGame() :
 	_bgX(0.0f), _bgObj1X(0.0f), _bgObj2X(0.0f), _bgObj3X(0.0f),
 	_jumpPower(0.0f), _gravity(0.0f), _velocityY(0.0f),
 	_canDoubleJump(false), _landingTime(0.0f), _landingTimer(0.0f),
-	_isDebug(false), _mapPosX(0.0f), _playerHitbox(RectMake(0, 0, 0, 0))
+	_isDebug(false), _mapPosX(0.0f), _playerHitbox(RectMake(0, 0, 0, 0)),
+	_isShowingDamage(false), _damageAlpha(0.0f)
 
 {
 }
@@ -299,6 +300,9 @@ void MainGame::update(void)
 				_panCakeFrameX = 0;
 				_panCakeFrameCount = 0;
 				_hitAnimationFinished = false;
+
+				_isShowingDamage = true;
+				_damageAlpha = 80.0f;
 				break;
 			}
 		}
@@ -332,6 +336,16 @@ void MainGame::update(void)
 
 		_isInvincible = true;
 		_invincibleTimer = 9999.0f;
+	}
+
+	if (_isShowingDamage)
+	{
+		_damageAlpha -= 3.0f; // 투명해지는 속도 (값 조절 가능)
+		if (_damageAlpha <= 0)
+		{
+			_damageAlpha = 0;
+			_isShowingDamage = false;
+		}
 	}
 
 	// HP 바 업데이트
@@ -440,6 +454,11 @@ void MainGame::render(HDC hdc)
 			IMAGEMANAGER->frameRender("게임오버", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
 			break;
 		}
+	}
+
+	if (_isShowingDamage)
+	{
+		IMAGEMANAGER->findImage("데미지")->alphaRenderWithTransparency(memDC, 0, 0, static_cast<BYTE>(_damageAlpha));
 	}
 
 	_hpBar->render(memDC);
