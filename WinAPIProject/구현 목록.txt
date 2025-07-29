@@ -52,3 +52,7 @@
 	ㄴ 능력이 끝나면 짧은 시간 무적 + 깜빡임
 - 체력 아이템
 	ㄴ 작은 체력 아이템과 큰 체력 아이템, 먹으면 체력 참
+
+char debugBuffer[1024 + 4]{};
+sprintf_s(debugBuffer, 1024, "%d\n", _panCakeFrameCount);
+OutputDebugString(debugBuffer);

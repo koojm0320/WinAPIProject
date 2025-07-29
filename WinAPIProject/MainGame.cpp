@@ -211,6 +211,15 @@ void MainGame::update(void)
 			_bgObj3X -= _mapPosX * 0.8f;
 		}
 
+		if (_isShowingDamage)
+		{
+			_damageAlpha -= 3.0f;
+			if (_damageAlpha <= 0)
+			{
+				_damageAlpha = 0;
+				_isShowingDamage = false;
+			}
+		}
 
 		return;
 	}
@@ -220,7 +229,7 @@ void MainGame::update(void)
 	{
 		_sprintTimer -= 1.0f / 60.0f;
 		// 일정 시간마다 질주 이펙트 생성
-		if (_panCakeFrameCount % 3 == 0)
+		if (_panCakeFrameCount % 2 == 0)
 		{
 			_effectManager->createEffect("질주이펙트", _panCakeX - 30, (int)_panCakeY + 20, false);
 		}
@@ -424,7 +433,16 @@ void MainGame::update(void)
 				{
 					hurdle->destroy();
 					// 파괴 위치에 이펙트 생성
-					_effectManager->createEffect("장애물파괴", hurdle->getRect().left - 50, hurdle->getRect().top - 50, true);
+					if (hurdle->getType() == HurdleType::SPIKE)
+					{
+						// Spike 장애물일 경우: 더 낮은 위치에 이펙트 생성
+						_effectManager->createEffect("장애물파괴", hurdle->getRect().left - 50, hurdle->getRect().top + 150, true);
+					}
+					else
+					{
+						// 그 외 장애물일 경우: 기존 위치에 이펙트 생성
+						_effectManager->createEffect("장애물파괴", hurdle->getRect().left - 50, hurdle->getRect().top - 50, true);
+					}
 				}
 			}
 		}
@@ -676,7 +694,7 @@ void MainGame::render(HDC hdc)
 
 void MainGame::loadMap(float startX)
 {
-	std::string jellyData = "-----TTBTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTTTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
+	std::string jellyData = "-----TTBTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTBTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
 	std::string mapData = "TTT--TTTTSSSTTTTTTLTTLTTLTTTTTT--T--TTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTT";
 
 	const int TILE_WIDTH = 129;

@@ -33,6 +33,8 @@ public:
 
 	RECT& getRect() { return _rc; }
 
+	HurdleType getType() const { return _type; }
+
 	void destroy() { _isDestroyed = true; }
 	bool isDestroyed() { return _isDestroyed; }
 	bool isExplosionFinished() { return _isDestroyed && _explodeFrame >= 6; }
