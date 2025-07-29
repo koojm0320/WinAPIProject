@@ -103,23 +103,26 @@ void Hurdle::render(HDC hdc)
     {
         return;
     }
-	if (_isReady)
-	{
-		IMAGEMANAGER->frameRender("허들준비", hdc, _rc.left + 20, _rc.top + 100, _frameX, 0);
-	}
-	else
-	{
-		if (_type == HurdleType::LOW)
-		{
-			IMAGEMANAGER->frameRender("낮은허들", hdc, _rc.left - 10, _rc.top - 30, _frameX, 0);
-		}
-		else if (_type == HurdleType::HIGH)
-		{
-			IMAGEMANAGER->frameRender("높은허들", hdc, _rc.left, _rc.top - 70, _frameX, 0);
-		}
-        else if (_type == HurdleType::SPIKE)
+    else
+    {
+        if (_isReady)
         {
-            _image->render(hdc, _rc.left - 20, _rc.top);
+            IMAGEMANAGER->frameRender("허들준비", hdc, _rc.left + 20, _rc.top + 100, _frameX, 0);
         }
-	}
+        else
+        {
+            if (_type == HurdleType::LOW)
+            {
+                IMAGEMANAGER->frameRender("낮은허들", hdc, _rc.left - 10, _rc.top - 30, _frameX, 0);
+            }
+            else if (_type == HurdleType::HIGH)
+            {
+                IMAGEMANAGER->frameRender("높은허들", hdc, _rc.left, _rc.top - 70, _frameX, 0);
+            }
+            else if (_type == HurdleType::SPIKE)
+            {
+                _image->render(hdc, _rc.left - 20, _rc.top);
+            }
+        }
+    }
 }

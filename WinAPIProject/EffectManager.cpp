@@ -15,12 +15,12 @@ void EffectManager::release()
     _effects.clear();
 }
 
-void EffectManager::update()
+void EffectManager::update(float mapPosX)
 {
     for (size_t i = 0; i < _effects.size(); )
     {
-        _effects[i]->update();
-        if (_effects[i]->isFinished())
+        _effects[i]->update(mapPosX);
+        if (_effects[i]->isFinished() || _effects[i]->getRect().right < 0)
         {
             SAFE_DELETE(_effects[i]);
             _effects.erase(_effects.begin() + i);
@@ -40,11 +40,12 @@ void EffectManager::render(HDC hdc)
     }
 }
 
-void EffectManager::createEffect(std::string imageKey, int x, int y)
+void EffectManager::createEffect(std::string imageKey, int x, int y, bool isAnimated)
 {
     GImage* image = IMAGEMANAGER->findImage(imageKey);
+
     if (image)
     {
-        _effects.push_back(new Effect(image, x, y));
+        _effects.push_back(new Effect(image, x, y, isAnimated));
     }
 }

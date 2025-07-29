@@ -35,6 +35,8 @@ private:
 	bool _hitAnimationFinished;
 	bool _gameOverAnimationFinished;
 	bool _isSprinting;
+	bool _isInvincible;
+	bool _isPostSprintInvincible;
 
 	// Player Physics
 	float _jumpPower;
@@ -44,6 +46,8 @@ private:
 	float _landingTimer;
 	float _sprintTimer;
 	float _originalMapSpeed;
+	float _invincibleTimer;
+	float _postSprintInvincibleTimer;
 
 #pragma endregion
 
@@ -62,8 +66,6 @@ private:
 	ItemManager* _itemManager;
 	HurdleManager* _hurdleManager;
 	EffectManager* _effectManager;
-	bool _isInvincible;
-	float _invincibleTimer;
 	
 	// UI & etc.
 	ProgressBar* _hpBar;

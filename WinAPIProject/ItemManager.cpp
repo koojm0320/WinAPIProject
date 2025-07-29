@@ -111,7 +111,7 @@ void ItemManager::createItems(const std::string& jellyData, float startX)
         case 'B': // ÁúÁÖ ¾ÆÀÌÅÛ
         {
             Item* newItem = new Item();
-            newItem->init(ItemType::ITEM_SPRINT, currentX, GROUND_Y - 150); // yÁÂÇ¥´Â ÀûÀýÈ÷ Á¶Àý
+            newItem->init(ItemType::ITEM_SPRINT, currentX + 30, GROUND_Y -90); // yÁÂÇ¥´Â ÀûÀýÈ÷ Á¶Àý
             _items.push_back(newItem);
             break;
         }
@@ -141,6 +141,16 @@ void ItemManager::checkCollision(const RECT& playerRC)
             if (IntersectRect(&temp, &jellyHitbox, &item->getRect()))
             {
                 item->eat();
+                // °õÁ©¸®¸¦ ¸Ô¾úÀ» ¶§ ÀÌÆåÆ® »ý¼º
+                if (item->getType() == ItemType::JELLY_BEAR)
+                {
+                    EFFECTMANAGER->createEffect("°õÁ©¸®ÀÌÆåÆ®", item->getRect().left, item->getRect().top);
+                }
+                // ÀÏ¹Ý Á©¸®¸¦ ¸Ô¾úÀ» ¶§ ÀÌÆåÆ® »ý¼º
+                else if (item->getType() == ItemType::JELLY_NORMAL)
+                {
+                    EFFECTMANAGER->createEffect("Á©¸®ÀÌÆåÆ®", item->getRect().left, item->getRect().top);
+                }
             }
         }
     }

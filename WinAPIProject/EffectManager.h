@@ -11,8 +11,8 @@ private:
 public:
     HRESULT init();
     void release();
-    void update();
+    void update(float mapPosX);
     void render(HDC hdc);
 
-    void createEffect(std::string imageKey, int x, int y);
+    void createEffect(std::string imageKey, int x, int y, bool isAnimated = true);
 };

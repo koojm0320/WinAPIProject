@@ -1,7 +1,7 @@
 #include "Stdafx.h"
 #include "MainGame.h"
 #include "ItemManager.h"
-
+#include "EffectManager.h"
 
 // 멤버 변수 초기화
 MainGame::MainGame() :
@@ -23,6 +23,8 @@ HRESULT MainGame::init(void)
 	GameNode::init();
 	IMAGEMANAGER->init();
 	EFFECTMANAGER->init();
+
+	_effectManager = EFFECTMANAGER;
 
 	_hurdleManager = new HurdleManager();
 	_hurdleManager->init();
@@ -68,15 +70,14 @@ HRESULT MainGame::init(void)
 	// 젤리
 	IMAGEMANAGER->addImage("젤리", "Resources/Images/Object/jelly.bmp", 25, 34, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("젤리이펙트", "Resources/Images/Effect/jellyEffect.bmp", 86, 46, true, RGB(255, 0, 255));
-	IMAGEMANAGER->addImage("곰젤리이펙트", "Resources/Images/Effect/jellBearEffect.bmp", 86, 46, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("곰젤리이펙트", "Resources/Images/Effect/bearJellyEffect.bmp", 96, 56, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("곰젤리", "Resources/Images/Object/bearJelly.bmp", 55, 51, true, RGB(255, 0, 255));
 
 	// 아이템
-	IMAGEMANAGER->addFrameImage("질주아이템", "Resources/Images/Object/booster.bmp", 360, 90, 4, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("질주아이템", "Resources/Images/Object/booster.bmp", 240, 60, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("자석아이템", "Resources/Images/Object/magnetic.bmp", 360, 90, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("아이템이펙트", "Resources/Images/Effect/itemEaten.bmp", 272, 68, 4, 1, true, RGB(255, 0, 255));
-	IMAGEMANAGER->addImage("질주이펙트", "Resources/Images/Effect/sprint.bmp", 151, 141, true, RGB(255, 0, 255));
-
+	IMAGEMANAGER->addFrameImage("질주이펙트", "Resources/Images/Effect/sprint.bmp", 151, 141, 1, 1, true, RGB(255, 0, 255));
 	_panCakeX = 130;
 	//_groundY = WINSIZE_Y - 250;
 	_panCakeY = WINSIZE_Y - 250;;
@@ -95,6 +96,7 @@ HRESULT MainGame::init(void)
 	_panCakeFrameX = 0;
 	_panCakeFrameCount = 0;
 	_invincibleTimer = 0.0f;
+	_postSprintInvincibleTimer = 0;
 	_mapPosX = 0;
 	_maxHp = 100.0f;
 	_currentHp = _maxHp;
@@ -104,6 +106,7 @@ HRESULT MainGame::init(void)
 	_gameOverAnimationFinished = false;
 	_isGameOver = false;
 	_isSprinting = false;
+	_isPostSprintInvincible = false;
 	_isDebug = true;
 	_hpBar = new ProgressBar;
 	_hpBar->init(65, 27, 644, 46);
@@ -127,6 +130,7 @@ void MainGame::release(void)
 	SAFE_DELETE(_hurdleManager);
 	_itemManager->release();
 	SAFE_DELETE(_itemManager);
+	EFFECTMANAGER->releaseSingleton();
 }
 
 
@@ -135,14 +139,26 @@ void MainGame::release(void)
 void MainGame::update(void)
 {
 	GameNode::update();
-	_effectManager->update();
-	_itemManager->update(_mapPosX);
-	_itemManager->checkCollision(_playerHitbox);
-	_hurdleManager->update(_mapPosX);
+
+	
+	// 게임 오버 조건
+	if ((_currentHp <= 0 || _panCakeY > WINSIZE_Y + 300) && !_isGameOver)
+	{
+		if (_panCakeY > WINSIZE_Y + 300) {
+			_isShowingDamage = true;
+			_damageAlpha = 80.0f;
+			_currentHp = 0;
+		}
+		_isGameOver = true;
+		_playerState = PlayerState::GAMEOVER;
+		_panCakeFrameX = 0;
+		_panCakeFrameCount = 0;
+		_isInvincible = true; // 게임 오버 시 더 이상 피격되지 않도록
+		_invincibleTimer = 9999.0f;
+	}
 	// 게임 오버 시 로직
 	if (_isGameOver)
 	{
-		// 게임오버 애니메이션
 		if (!_gameOverAnimationFinished)
 		{
 			if (_panCakeFrameCount++ % 10 == 0)
@@ -156,41 +172,47 @@ void MainGame::update(void)
 			}
 		}
 
-		if (_isSprinting)
+		bool onGround = false;
+		for (auto& tile : _tiles)
 		{
-			_sprintTimer -= 1.0f / 60.0f;
-			_mapPosX = _originalMapSpeed * 2;
-			if (_sprintTimer <= 0)
+			RECT playerFeet = RectMake(_playerHitbox.left + 10, _playerHitbox.bottom - 10, (_playerHitbox.right - _playerHitbox.left) - 20, 10);
+			RECT intersection;
+			if (_velocityY > 0 && IntersectRect(&intersection, &playerFeet, &tile))
 			{
-				_sprintTimer = 0;
-				_playerState = PlayerState::RUNNING;
-				_mapPosX = _originalMapSpeed;
+				_panCakeY -= (_playerHitbox.bottom - tile.top);
+				_velocityY = 0;
+				onGround = true;
+				break;
 			}
 		}
-
-		// 맵 이동 속도를 0으로 서서히 감소
+		if (!onGround)
+		{
+			_velocityY += _gravity;
+			_panCakeY += _velocityY;
+			_playerHitbox = RectMakeCenter(_panCakeX + 100, (int)_panCakeY + 76, 70, 130);
+		}
 		if (_mapPosX < 0.0f)
 		{
-			_mapPosX += 0.05f;
+			_mapPosX += 0.3f;
 			if (_mapPosX > 0.0f) _mapPosX = 0.0f;
+			
+			_effectManager->update(_mapPosX);
+			_hurdleManager->update(_mapPosX);
+			_itemManager->update(_mapPosX);
+
+			for (size_t i = 0; i < _tiles.size(); i++)
+			{
+				_tiles[i].left += (int)_mapPosX;
+				_tiles[i].right += (int)_mapPosX;
+			}
+			_bgX -= _mapPosX * 0.25f;
+			_bgObj1X -= _mapPosX * 0.4f;
+			_bgObj2X -= _mapPosX * 0.6f;
+			_bgObj3X -= _mapPosX * 0.8f;
 		}
 
-		// 감속되는 속도에 맞춰 타일, 장애물, 배경 이동
-		for (size_t i = 0; i < _tiles.size(); i++)
-		{
-			_tiles[i].left += (int)_mapPosX;
-			_tiles[i].right += (int)_mapPosX;
-		}
-		_hurdleManager->update(_mapPosX);
-		_itemManager->update(_mapPosX);
-		
-		// 배경 이동 방향 수정
-		_bgX += -_mapPosX * 0.25f;
-		_bgObj1X += -_mapPosX * 0.4f;
-		_bgObj2X += -_mapPosX * 0.6f;
-		_bgObj3X += -_mapPosX * 0.8f;
 
-		return; // 다른 모든 로직 건너뜀
+		return;
 	}
 
 	// 질주 이펙트
@@ -198,15 +220,33 @@ void MainGame::update(void)
 	{
 		_sprintTimer -= 1.0f / 60.0f;
 		// 일정 시간마다 질주 이펙트 생성
-		if (_panCakeFrameCount % 10 == 0)
+		if (_panCakeFrameCount % 3 == 0)
 		{
-			_effectManager->createEffect("질주이펙트", _playerHitbox.left - 40, _playerHitbox.top + 20);
+			_effectManager->createEffect("질주이펙트", _panCakeX - 30, (int)_panCakeY + 20, false);
 		}
 
 		if (_sprintTimer <= 0)
 		{
 			_isSprinting = false;
 			_playerState = PlayerState::RUNNING;
+
+			_isPostSprintInvincible = true;
+			_postSprintInvincibleTimer = 2.0f;
+		}
+	}
+
+	_effectManager->update(_mapPosX);
+	_itemManager->update(_mapPosX);
+	_itemManager->checkCollision(_playerHitbox);
+	_hurdleManager->update(_mapPosX);
+
+	// 질주 끝난 뒤 무적시간
+	if (_isPostSprintInvincible)
+	{
+		_postSprintInvincibleTimer -= 1.0f / 60.0f;
+		if (_postSprintInvincibleTimer <= 0)
+		{
+			_isPostSprintInvincible = false;
 		}
 	}
 
@@ -333,14 +373,21 @@ void MainGame::update(void)
 		_landingTimer -= 1.0f / 60.0f;
 		if (_landingTimer <= 0)
 		{
-			_playerState = PlayerState::RUNNING;
+			if (_isSprinting)
+			{
+				_playerState = PlayerState::SPRINTING;
+			}
+			else
+			{
+				_playerState = PlayerState::RUNNING;
+			}
 		}
 	}
 	else if (onGround)
 	{
 		if (KEYMANAGER->isStayKeyDown(VK_SHIFT))
 		{
-			if (_playerState == PlayerState::RUNNING)
+			if (_playerState == PlayerState::RUNNING || _playerState == PlayerState::SPRINTING)
 			{
 				_playerState = PlayerState::SLIDING;
 				_panCakeFrameX = 0;
@@ -349,9 +396,18 @@ void MainGame::update(void)
 		}
 		else if (_playerState == PlayerState::SLIDING)
 		{
-			_playerState = PlayerState::RUNNING;
-			_panCakeFrameX = 0;
-			_panCakeFrameCount = 0;
+			if (_isSprinting)
+			{
+				_playerState = PlayerState::SPRINTING;
+				_panCakeFrameX = 0;
+				_panCakeFrameCount = 0;
+			}
+			else
+			{
+				_playerState = PlayerState::RUNNING;
+				_panCakeFrameX = 0;
+				_panCakeFrameCount = 0;
+			}
 		}
 	}
 
@@ -368,12 +424,12 @@ void MainGame::update(void)
 				{
 					hurdle->destroy();
 					// 파괴 위치에 이펙트 생성
-					_effectManager->createEffect("장애물파괴", hurdle->getRect().left - 50, hurdle->getRect().top - 50);
+					_effectManager->createEffect("장애물파괴", hurdle->getRect().left - 50, hurdle->getRect().top - 50, true);
 				}
 			}
 		}
 	}
-	else if (!_isInvincible)
+	else if (!_isInvincible && !_isPostSprintInvincible)
 	{
 		for (auto& hurdle : _hurdleManager->getHurdles())
 		{
@@ -529,11 +585,26 @@ void MainGame::render(HDC hdc)
 
 
 	int renderY = (int)_panCakeY;
-	if (_playerState != PlayerState::GAMEOVER && _isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
+	bool shouldRenderPlayer = true;
+	// 피격 무적 상태일 때 깜빡임 처리
+	if (_isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
 	{
-		// 아무것도 안보이게
+		shouldRenderPlayer = false;
 	}
-	else
+
+	// 질주 후 무적 상태일 때 깜빡임 처리
+	if (_isPostSprintInvincible && (int)(_postSprintInvincibleTimer * 10) % 2 == 0)
+	{
+		shouldRenderPlayer = false;
+	}
+
+	// 게임오버 상태에서는 항상 보이도록
+	if (_playerState == PlayerState::GAMEOVER)
+	{
+		shouldRenderPlayer = true;
+	}
+
+	if (shouldRenderPlayer)
 	{
 		switch (_playerState)
 		{
@@ -562,6 +633,7 @@ void MainGame::render(HDC hdc)
 			IMAGEMANAGER->frameRender("질주", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
 		}
 	}
+
 
 	if (_isShowingDamage)
 	{
@@ -604,8 +676,8 @@ void MainGame::render(HDC hdc)
 
 void MainGame::loadMap(float startX)
 {
-	std::string jellyData = "-----TTTTSSSTTTTT-L--L--L-TTTTTTTBBTTTTST-L-TST-L-TST-L-TTTTTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
-	std::string mapData = "TTTTTTTTTSSSTTTTTTLTTLTTLTTTTTT--T--TTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTT";
+	std::string jellyData = "-----TTBTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTTTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
+	std::string mapData = "TTT--TTTTSSSTTTTTTLTTLTTLTTTTTT--T--TTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTT";
 
 	const int TILE_WIDTH = 129;
 	const int TILE_HEIGHT = 50;
