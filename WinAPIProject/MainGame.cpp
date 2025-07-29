@@ -445,7 +445,7 @@ void MainGame::render(HDC hdc)
 
 
 	int renderY = (int)_panCakeY;
-	if (_playerState != PlayerState::GAMEOVER && _isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
+	if (/*_playerState != PlayerState::GAMEOVER &&*/ _isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
 	{
 		// 아무것도 안보이게
 	}
