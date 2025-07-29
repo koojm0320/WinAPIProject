@@ -47,6 +47,7 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addFrameImage("≥∑¿∫«„µÈ", "Resources/Images/Object/hurdle.bmp", 388, 148, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("≥Ù¿∫«„µÈ", "Resources/Images/Object/highHurdle.bmp", 475, 296, 5, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("Ω∫∆ƒ¿Ã≈©", "Resources/Images/Object/spike2.bmp", 137, 416, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("¿Âæ÷π∞∆ƒ±´", "Resources/Images/Effect/explode.bmp", 1568, 226, 7, 1, true, RGB(255, 0, 255));
 
 
 	// ≈∏¿œ
@@ -64,6 +65,11 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addImage("¡©∏Æ¿Ã∆Â∆Æ", "Resources/Images/Effect/jellyEffect.bmp", 86, 46, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("∞ı¡©∏Æ¿Ã∆Â∆Æ", "Resources/Images/Effect/jellBearEffect.bmp", 86, 46, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("∞ı¡©∏Æ", "Resources/Images/Object/bearJelly.bmp", 55, 51, true, RGB(255, 0, 255));
+
+	// æ∆¿Ã≈€
+	IMAGEMANAGER->addFrameImage("¡˙¡÷", "Resources/Images/Object/booster.bmp", 360, 90, 4, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("¿⁄ºÆ", "Resources/Images/Object/magnetic.bmp", 360, 90, 4, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("æ∆¿Ã≈€¿Ã∆Â∆Æ", "Resources/Images/Effect/itemEaten.bmp", 272, 68, 4, 1, true, RGB(255, 0, 255));
 
 	_panCakeX = 130;
 	//_groundY = WINSIZE_Y - 250;
@@ -498,7 +504,7 @@ void MainGame::render(HDC hdc)
 void MainGame::loadMap(float startX)
 {
 	std::string jellyData = "TTTTTTTTTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTTTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
-	std::string mapData = "TTTTTTTTTSSSTTTTTTLTTLTTLTTTTTTTTTTTTTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTT";
+	std::string mapData = "TTTTTTTTTSSSTTTTTTLTTLTTLTTTTTT--T--TTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTT";
 
 	const int TILE_WIDTH = 129;
 	const int TILE_HEIGHT = 50;
