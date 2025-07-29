@@ -16,6 +16,8 @@ MainGame::MainGame() :
 {
 }
 
+// ============================================== INIT ==============================================
+
 HRESULT MainGame::init(void)
 {
 	GameNode::init();
@@ -70,6 +72,7 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addFrameImage("질주", "Resources/Images/Object/booster.bmp", 360, 90, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("자석", "Resources/Images/Object/magnetic.bmp", 360, 90, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("아이템이펙트", "Resources/Images/Effect/itemEaten.bmp", 272, 68, 4, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("질주이펙트", "Resources/Images/Effect/sprint.bmp", 151, 141, true, RGB(255, 0, 255));
 
 	_panCakeX = 130;
 	//_groundY = WINSIZE_Y - 250;
@@ -79,40 +82,36 @@ HRESULT MainGame::init(void)
 	_bgObj2X = 0.0f;
 	_bgObj3X = 0.0f;
 
-	// 물리 변수
+	// 변수 초기 설정
 	_playerState = PlayerState::RUNNING;
 	_jumpPower = 20.0f;
 	_gravity = 0.97f;
 	_velocityY = 0.0f;
-	_canDoubleJump = false;
 	_landingTime = 0.1f;
 	_landingTimer = 0.0f;
-
 	_panCakeFrameX = 0;
 	_panCakeFrameCount = 0;
-
-	_isInvincible = false;
 	_invincibleTimer = 0.0f;
 	_mapPosX = 0;
-
-	_hitAnimationFinished = false;
-	_gameOverAnimationFinished = false;
-
 	_maxHp = 100.0f;
 	_currentHp = _maxHp;
+	_canDoubleJump = false;
+	_isInvincible = false;
+	_hitAnimationFinished = false;
+	_gameOverAnimationFinished = false;
 	_isGameOver = false;
-
+	_isDebug = true;
 	_hpBar = new ProgressBar;
 	_hpBar->init(65, 27, 644, 46);
 	_hpBar->setBackImage(IMAGEMANAGER->findImage("체력바이펙트"));
-
-	_isDebug = true;
 
 	loadMap(0.0f);
 
 	RND->init();
 	return S_OK;
 }
+
+// ============================================== RELEASE ==============================================
 
 void MainGame::release(void)
 {
@@ -123,6 +122,9 @@ void MainGame::release(void)
 	_itemManager->release();
 	SAFE_DELETE(_itemManager);
 }
+
+
+// ============================================== UPDATE ==============================================
 
 void MainGame::update(void)
 {
@@ -233,7 +235,7 @@ void MainGame::update(void)
 	_panCakeY += _velocityY;
 
 
-	// 충돌 처리
+	// 타일 - 플레이어 충돌 처리
 	bool onGround = false;
 	for (auto& tile : _tiles)
 	{
@@ -344,6 +346,16 @@ void MainGame::update(void)
 		_invincibleTimer = 9999.0f;
 	}
 
+	// 바닥에 추락 시 게임오버
+	if (!_isGameOver && _panCakeY > WINSIZE_Y + 300)
+	{
+		_isShowingDamage = true;
+		_damageAlpha = 80.0f;
+		_currentHp = 0;
+		_isGameOver = true;
+	}
+
+	// 데미지 이펙트
 	if (_isShowingDamage)
 	{
 		_damageAlpha -= 3.0f; // 투명해지는 속도 (값 조절 가능)
@@ -353,6 +365,7 @@ void MainGame::update(void)
 			_isShowingDamage = false;
 		}
 	}
+
 
 	// HP 바 업데이트
 	_hpBar->setGauge(_currentHp, _maxHp);
@@ -404,6 +417,8 @@ void MainGame::update(void)
 		break;
 	}
 }
+
+// ============================================== RENDER ==============================================
 
 void MainGame::render(HDC hdc)
 {
@@ -503,7 +518,7 @@ void MainGame::render(HDC hdc)
 
 void MainGame::loadMap(float startX)
 {
-	std::string jellyData = "TTTTTTTTTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTTTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
+	std::string jellyData = "-----TTTTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTTTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
 	std::string mapData = "TTTTTTTTTSSSTTTTTTLTTLTTLTTTTTT--T--TTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTT";
 
 	const int TILE_WIDTH = 129;
