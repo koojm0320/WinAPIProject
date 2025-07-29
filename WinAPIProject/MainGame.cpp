@@ -43,6 +43,8 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addFrameImage("착지", "Resources/Images/Object/PanCakeLanding.bmp", 150, 126, 1, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("충돌", "Resources/Images/Object/PanCakeCollision.bmp", 1200, 158, 6, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("게임오버", "Resources/Images/Object/PanCakeGameOver.bmp", 915, 146, 5, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("질주", "Resources/Images/Object/PanCakeSprint.bmp", 668, 149, 4, 1, true, RGB(255, 0, 255));
+
 
 	// 장애물
 	IMAGEMANAGER->addFrameImage("허들준비", "Resources/Images/Object/hurdleReady.bmp", 138, 131, 2, 1, true, RGB(255, 0, 255));
@@ -211,7 +213,7 @@ void MainGame::update(void)
 	{
 		if (KEYMANAGER->isOnceKeyDown(VK_SPACE))
 		{
-			if ((_playerState == PlayerState::RUNNING || _playerState == PlayerState::SLIDING || _playerState == PlayerState::LANDING))
+			if ((_playerState == PlayerState::RUNNING || _playerState == PlayerState::SLIDING || _playerState == PlayerState::LANDING || _playerState == PlayerState::SPRINTING))
 			{
 				_playerState = PlayerState::JUMPING;
 				_velocityY = -_jumpPower;
@@ -415,6 +417,9 @@ void MainGame::update(void)
 			}
 		}
 		break;
+	case PlayerState::SPRINTING:
+		if (_panCakeFrameCount % 5 == 0) _panCakeFrameX = (_panCakeFrameX + 1) % 4;
+		break;
 	}
 }
 
@@ -445,7 +450,7 @@ void MainGame::render(HDC hdc)
 
 
 	int renderY = (int)_panCakeY;
-	if (/*_playerState != PlayerState::GAMEOVER &&*/ _isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
+	if (_playerState != PlayerState::GAMEOVER && _isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
 	{
 		// 아무것도 안보이게
 	}
@@ -474,6 +479,8 @@ void MainGame::render(HDC hdc)
 		case PlayerState::GAMEOVER:
 			IMAGEMANAGER->frameRender("게임오버", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
 			break;
+		case PlayerState::SPRINTING:
+			IMAGEMANAGER->frameRender("질주", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
 		}
 	}
 
