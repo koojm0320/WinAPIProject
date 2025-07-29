@@ -5,6 +5,9 @@ Hurdle::Hurdle(HurdleType type, int x, int y) : _type(type), _frameX(0), _frameC
 {
 	_animationStarted = false;
 	_animationFinished = false;
+    _isDestroyed = false;
+    _explodeFrame = 0;
+    _explodeFrameCount = 0;
 
 	if (_type == HurdleType::LOW)
 	{
@@ -32,59 +35,74 @@ Hurdle::~Hurdle()
 
 void Hurdle::update(float mapPosX)
 {
-    // 1. 허들이 화면 안으로 들어왔고, 아직 애니메이션이 시작되지 않았다면 시작
+    if (_isDestroyed)
+    {
+        _explodeFrameCount++;
+        if (_explodeFrameCount % 4 == 0)
+        {
+            _explodeFrame++;
+            if (_explodeFrame >= 7)
+            {
+                _explodeFrame = 6;
+            }
+            return;
+        }
+    }
+
     if (!_animationStarted && _rc.right < WINSIZE_X + 100)
     {
         _animationStarted = true;
     }
 
-    // 2. 애니메이션이 시작되었고, 아직 끝나지 않았다면 프레임 업데이트
     if (_animationStarted && !_animationFinished)
     {
         _frameCount++;
 
-        // 허들 준비 애니메이션 (2프레임)
+
         if (_isReady)
         {
             if (_frameCount % 10 == 0)
             {
                 _frameX++;
-                if (_frameX >= 2) // 준비 애니메이션이 끝나면
+                if (_frameX >= 2)
                 {
-                    _isReady = false; // 허들 등장 상태로 전환
+                    _isReady = false;
                     _frameX = 0;
                     _frameCount = 0;
                 }
             }
         }
-        // 허들 등장 애니메이션
         else
         {
             if (_frameCount % 3 == 0)
             {
                 _frameX++;
-                // 낮은 허들의 마지막 프레임에 도달하면
+
                 if (_type == HurdleType::LOW && _frameX >= 3)
                 {
-                    _frameX = 3; // 마지막 프레임(3)으로 고정
-                    _animationFinished = true; // 애니메이션 종료
+                    _frameX = 3; 
+                    _animationFinished = true;
                 }
-                // 높은 허들의 마지막 프레임에 도달하면
+
                 else if (_type == HurdleType::HIGH && _frameX >= 4)
                 {
-                    _frameX = 4; // 마지막 프레임(4)으로 고정
-                    _animationFinished = true; // 애니메이션 종료
+                    _frameX = 4;
+                    _animationFinished = true;
                 }
             }
         }
     }
 
-    _rc.left += (int)mapPosX; // 맵의 x축 이동량만큼 함께 이동
+    _rc.left += (int)mapPosX;
     _rc.right += (int)mapPosX;
 }
 
 void Hurdle::render(HDC hdc)
 {
+    if (_isDestroyed)
+    {
+        return;
+    }
 	if (_isReady)
 	{
 		IMAGEMANAGER->frameRender("허들준비", hdc, _rc.left + 20, _rc.top + 100, _frameX, 0);

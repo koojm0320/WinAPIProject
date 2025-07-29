@@ -5,7 +5,7 @@ enum class ItemType
 {
 	JELLY_NORMAL,
 	JELLY_BEAR,
-	ITEM_DASH,
+	ITEM_SPRINT,
 	ITEM_MAGNET
 };
 
@@ -33,5 +33,6 @@ public:
 	bool isEaten() { return _isEaten; }
 	RECT getRect() { return _rc; }
 	bool isFinished() { return _isEaten && _alpha <= 0; }
+	ItemType getType() { return _type; }
 };
 

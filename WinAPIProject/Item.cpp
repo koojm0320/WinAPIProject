@@ -26,6 +26,12 @@ HRESULT Item::init(ItemType type, int x, int y)
 		_effectImage = IMAGEMANAGER->findImage("곰젤리이펙트");
 		_rc = RectMake(x, y, 55, 51);
 	}
+	else if (_type == ItemType::ITEM_SPRINT)
+	{
+		_image = IMAGEMANAGER->findImage("질주아이템");
+		_effectImage = IMAGEMANAGER->findImage("아이템이펙트");
+		_rc = RectMake(x, y, 90, 90);
+	}
 
 	return S_OK;
 }
@@ -50,7 +56,14 @@ void Item::render(HDC hdc)
 {
 	if (!_isEaten && _image)
 	{
-		_image->render(hdc, _rc.left, _rc.top);
+		if (_type == ItemType::ITEM_SPRINT)
+		{
+			IMAGEMANAGER->frameRender("질주아이템", hdc, _rc.left, _rc.top, 0, 0);
+		}
+		else
+		{
+			_image->render(hdc, _rc.left, _rc.top);
+		}
 	}
 	else if (_alpha > 0 && _effectImage)
 	{

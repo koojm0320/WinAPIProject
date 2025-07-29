@@ -29,10 +29,12 @@
 #include "ImageManager.h"
 #include "HurdleManager.h"
 #include "ProgressBar.h"
+#include "EffectManager.h"
 
 #define RND RandomFuntion::getSingleton()
 #define KEYMANAGER KeyManager::getSingleton()
 #define IMAGEMANAGER ImageManager::getSingleton()
+#define EFFECTMANAGER EffectManager::getSingleton()
 
 // # 매크로 (윈도우창 초기화) #
 

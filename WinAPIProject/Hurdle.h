@@ -20,6 +20,10 @@ private:
 
 	bool _animationStarted;
 	bool _animationFinished;
+
+	bool _isDestroyed;
+	int _explodeFrame;
+	int _explodeFrameCount;
 public:
 	Hurdle(HurdleType type, int x, int y);
 	~Hurdle();
@@ -28,5 +32,9 @@ public:
 	void render(HDC hdc);
 
 	RECT& getRect() { return _rc; }
+
+	void destroy() { _isDestroyed = true; }
+	bool isDestroyed() { return _isDestroyed; }
+	bool isExplosionFinished() { return _isDestroyed && _explodeFrame >= 6; }
 };
 

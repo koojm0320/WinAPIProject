@@ -20,7 +20,7 @@ void HurdleManager::update(float mapPosX)
 	for (size_t i = 0; i < _hurdles.size();)
 	{
 		_hurdles[i]->update(mapPosX);
-		if (_hurdles[i]->getRect().right < 0)
+		if (_hurdles[i]->getRect().right < 0 || _hurdles[i]->isExplosionFinished())
 		{
 			SAFE_DELETE(_hurdles[i]);
 			_hurdles.erase(_hurdles.begin() + i);

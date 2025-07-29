@@ -65,7 +65,7 @@ void ItemManager::createItems(const std::string& jellyData, float startX)
             }
             break;
         }
-        case 'L': // 낮은 포물선
+        case 'L': // 낮은 포물선 젤리
         {
             int jellyCount = 8;
             float arcHeight = 120.0f;
@@ -83,7 +83,7 @@ void ItemManager::createItems(const std::string& jellyData, float startX)
             }
             break;
         }
-        case 'H': // 높은 포물선
+        case 'H': // 높은 포물선 젤리
         {
             int jellyCount = 12;
             float arcHeight = 220.0f;
@@ -108,6 +108,13 @@ void ItemManager::createItems(const std::string& jellyData, float startX)
             _items.push_back(newItem);
             break;
         }
+        case 'B': // 질주 아이템
+        {
+            Item* newItem = new Item();
+            newItem->init(ItemType::ITEM_SPRINT, currentX, GROUND_Y - 150); // y좌표는 적절히 조절
+            _items.push_back(newItem);
+            break;
+        }
         case '-': // 공백
         default:
             // 아무것도 생성하지 않음
@@ -121,7 +128,7 @@ void ItemManager::checkCollision(const RECT& playerRC)
 {
     for (auto& item : _items)
     {
-        if (!item->isEaten())
+        if (!item->isEaten() && (item->getType() == ItemType::JELLY_NORMAL || item->getType() == ItemType::JELLY_BEAR))
         {
             RECT jellyHitbox = playerRC;
 

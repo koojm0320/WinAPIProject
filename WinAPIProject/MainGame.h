@@ -18,24 +18,35 @@ enum class PlayerState
 class MainGame : public GameNode
 {
 private:
-	// Player
+#pragma region Player
+	
+	// PlayerLocation
 	int _panCakeX;
 	float _panCakeY;
 	int _panCakeFrameX;
 	int _panCakeFrameCount;
 
+	// PlayerHitBox
 	RECT _playerHitbox;
+	
+	// PlayerState
 	PlayerState _playerState;
+	bool _canDoubleJump;
+	bool _hitAnimationFinished;
+	bool _gameOverAnimationFinished;
+	bool _isSprinting;
 
+	// Player Physics
 	float _jumpPower;
 	float _gravity;
 	float _velocityY;
 	float _landingTime;
 	float _landingTimer;
-	
-	bool _canDoubleJump;
-	bool _hitAnimationFinished;
-	bool _gameOverAnimationFinished;
+	float _sprintTimer;
+	float _originalMapSpeed;
+
+#pragma endregion
+
 
 	// BG
 	float _bgX;
@@ -50,6 +61,7 @@ private:
 
 	ItemManager* _itemManager;
 	HurdleManager* _hurdleManager;
+	EffectManager* _effectManager;
 	bool _isInvincible;
 	float _invincibleTimer;
 	
