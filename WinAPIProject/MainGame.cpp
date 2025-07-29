@@ -3,16 +3,59 @@
 #include "ItemManager.h"
 #include "EffectManager.h"
 
+
 // 멤버 변수 초기화
 MainGame::MainGame() :
-	_panCakeX(0), _panCakeY(0.0f),
-	_panCakeFrameX(0), _panCakeFrameCount(0),
-	_bgX(0.0f), _bgObj1X(0.0f), _bgObj2X(0.0f), _bgObj3X(0.0f),
-	_jumpPower(0.0f), _gravity(0.0f), _velocityY(0.0f),
-	_canDoubleJump(false), _landingTime(0.0f), _landingTimer(0.0f),
-	_isDebug(false), _mapPosX(0.0f), _playerHitbox(RectMake(0, 0, 0, 0)),
-	_isShowingDamage(false), _damageAlpha(0.0f)
-
+	_panCakeX(130),
+	_panCakeY(WINSIZE_Y - 250),
+	_panCakeFrameX(0),
+	_panCakeFrameCount(0),
+	_playerHitbox(RectMake(0, 0, 0, 0)),
+	_playerState(PlayerState::RUNNING),
+	_canDoubleJump(false),
+	_hitAnimationFinished(false),
+	_gameOverAnimationFinished(false),
+	_isSprinting(false),
+	_isInvincible(false),
+	_isPostSprintInvincible(false),
+	_jumpPower(20.0f),
+	_gravity(0.97f),
+	_velocityY(0.0f),
+	_landingTime(0.1f),
+	_landingTimer(0.0f),
+	_sprintTimer(0.0f),
+	_originalMapSpeed(-8.0f),
+	_invincibleTimer(0.0f),
+	_postSprintInvincibleTimer(0.0f),
+	// BG
+	_bgX(0.0f),
+	_bgObj1X(0.0f),
+	_bgObj2X(0.0f),
+	_bgObj3X(0.0f),
+	_mapPosX(0.0f),
+	// Object Managers (Pointers)
+	_itemManager(nullptr),
+	_hurdleManager(nullptr),
+	_effectManager(nullptr),
+	// UI & etc.
+	_hpBar(nullptr),
+	_currentHp(100.0f),
+	_maxHp(100.0f),
+	_damageAlpha(0.0f),
+	_isGameOver(false),
+	_isShowingDamage(false),
+	_isDebug(true),
+	//Ablity
+	_abilityGaugeTimer(0.0f),
+	_abilityChargeTime(15.0f),      // 능력 충전 시간 (15초로 설정, 원하시면 조절)
+	_isAbilityActive(false),
+	_abilityDurationTimer(0.0f),
+	_abilityDuration(7.0f),         // 능력 지속 시간 (7초로 설정, 원하시면 조절)
+	_postAbilityInvincibleTimer(0.0f),
+	_flyingYSpeed(5.5f),			// 나는 속도
+	_flyingState(FlyingState::DOWN),
+	_flyingFrameX(0),
+	_flyingFrameCount(0)
 {
 }
 
@@ -78,6 +121,16 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addFrameImage("자석아이템", "Resources/Images/Object/magnetic.bmp", 360, 90, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("아이템이펙트", "Resources/Images/Effect/itemEaten.bmp", 272, 68, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("질주이펙트", "Resources/Images/Effect/sprint.bmp", 151, 141, 1, 1, true, RGB(255, 0, 255));
+
+	// 쿠키 능력
+	IMAGEMANAGER->addFrameImage("비행상승", "Resources/Images/Object/PanCakeFlyingUp.bmp", 426, 158, 2, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("비행중간", "Resources/Images/Object/PanCakeFlyingMiddle.bmp", 213, 158, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("비행하강", "Resources/Images/Object/PanCakeFlyingDown.bmp", 426, 158, 2, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("능력게이지Empty", "Resources/Images/UI/ablityEmpty.bmp", 66, 21, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("능력게이지Full", "Resources/Images/UI/ablityFull.bmp", 66, 21, true, RGB(255, 0, 255));
+	
+	
+	// 변수 초기 설정
 	_panCakeX = 130;
 	//_groundY = WINSIZE_Y - 250;
 	_panCakeY = WINSIZE_Y - 250;;
@@ -86,7 +139,6 @@ HRESULT MainGame::init(void)
 	_bgObj2X = 0.0f;
 	_bgObj3X = 0.0f;
 
-	// 변수 초기 설정
 	_playerState = PlayerState::RUNNING;
 	_jumpPower = 20.0f;
 	_gravity = 0.97f;
@@ -224,6 +276,8 @@ void MainGame::update(void)
 		return;
 	}
 
+	updateAbility();
+
 	// 질주 이펙트
 	if (_isSprinting)
 	{
@@ -270,7 +324,7 @@ void MainGame::update(void)
 	}
 
 	// 맵 이동 속도
-	_mapPosX = _isSprinting ?  _originalMapSpeed * 2 :  _originalMapSpeed;
+	_mapPosX = _isAbilityActive ? _originalMapSpeed * 1.5f : (_isSprinting ? _originalMapSpeed * 2 : _originalMapSpeed);
 
 	for (size_t i = 0; i < _tiles.size(); )
 	{
@@ -294,7 +348,7 @@ void MainGame::update(void)
 
 	// 키 입력 처리
 
-	if (_playerState != PlayerState::HIT)
+	if (_playerState != PlayerState::HIT && _playerState != PlayerState::FLYING)
 	{
 		if (KEYMANAGER->isOnceKeyDown(VK_SPACE))
 		{
@@ -318,36 +372,46 @@ void MainGame::update(void)
 	}
 
 	// 물리 효과 적용
-	_velocityY += _gravity;
+	if (!_isAbilityActive)
+	{
+		_velocityY += _gravity;
+	}
 	_panCakeY += _velocityY;
 
-
-	// 타일 - 플레이어 충돌 처리
-	bool onGround = false;
-	for (auto& tile : _tiles)
+	if (_playerState == PlayerState::FLYING)
 	{
-		RECT playerFeet = RectMake(_playerHitbox.left + 10, _playerHitbox.bottom - 10, (_playerHitbox.right - _playerHitbox.left) - 20, 10);
-		RECT intersection;
-		// 플레이어가 아래로 떨어지는 중에만 타일과 충돌 판정
-		if (_velocityY > 0 && IntersectRect(&intersection, &playerFeet, &tile))
+		updateFlying();
+	}
+
+	bool onGround = false;
+	// 타일 - 플레이어 충돌 처리
+	if (_playerState != PlayerState::FLYING)
+	{
+		for (auto& tile : _tiles)
 		{
-			// 플레이어를 타일 바로 위로 이동
-			_panCakeY -= (_playerHitbox.bottom - tile.top);
-			_velocityY = 0;
-			onGround = true;
-
-			// JUMPING 또는 DOUBLE_JUMPING 상태였다면 LANDING으로 변경
-			if ((_playerState == PlayerState::JUMPING || _playerState == PlayerState::DOUBLE_JUMPING))
+			RECT playerFeet = RectMake(_playerHitbox.left + 10, _playerHitbox.bottom - 10, (_playerHitbox.right - _playerHitbox.left) - 20, 10);
+			RECT intersection;
+			// 플레이어가 아래로 떨어지는 중에만 타일과 충돌 판정
+			if (_velocityY > 0 && IntersectRect(&intersection, &playerFeet, &tile))
 			{
-				_playerState = PlayerState::LANDING;
-				_landingTimer = _landingTime;
-			}
-			else if (_playerState == PlayerState::LANDING && KEYMANAGER->isStayKeyDown(VK_SHIFT))
-			{
-				_playerState = PlayerState::SLIDING;
+				// 플레이어를 타일 바로 위로 이동
+				_panCakeY -= (_playerHitbox.bottom - tile.top);
+				_velocityY = 0;
+				onGround = true;
 
+				// JUMPING 또는 DOUBLE_JUMPING 상태였다면 LANDING으로 변경
+				if ((_playerState == PlayerState::JUMPING || _playerState == PlayerState::DOUBLE_JUMPING))
+				{
+					_playerState = PlayerState::LANDING;
+					_landingTimer = _landingTime;
+				}
+				else if (_playerState == PlayerState::LANDING && KEYMANAGER->isStayKeyDown(VK_SHIFT))
+				{
+					_playerState = PlayerState::SLIDING;
+
+				}
+				break;
 			}
-			break;
 		}
 	}
 
@@ -422,7 +486,7 @@ void MainGame::update(void)
 
 
 	// 충돌 처리
-	if (_isSprinting)
+	if (_isSprinting || _isAbilityActive)
 	{
 		for (auto& hurdle : _hurdleManager->getHurdles())
 		{
@@ -572,6 +636,8 @@ void MainGame::update(void)
 	case PlayerState::SPRINTING:
 		if (_panCakeFrameCount % 5 == 0) _panCakeFrameX = (_panCakeFrameX + 1) % 4;
 		break;
+	case PlayerState::FLYING:
+		break;
 	}
 }
 
@@ -601,6 +667,18 @@ void MainGame::render(HDC hdc)
 	_itemManager->render(memDC);
 	_effectManager->render(memDC);
 
+	IMAGEMANAGER->findImage("능력게이지Empty")->render(memDC, _panCakeX + 60, _panCakeY - 20);
+
+	float gaugeRatio = _abilityGaugeTimer / _abilityChargeTime;
+	if (gaugeRatio > 1.0f) gaugeRatio = 1.0f;
+
+	GImage* fullGaugeImg = IMAGEMANAGER->findImage("능력게이지Full");
+	if (fullGaugeImg)
+	{
+		// getWidth()를 사용하여 너비를 가져옵니다.
+		int gaugeWidth = fullGaugeImg->getWidth() * gaugeRatio;
+		fullGaugeImg->render(memDC, _panCakeX + 60, _panCakeY - 20, 0, 0, gaugeWidth, fullGaugeImg->getHeight());
+	}
 
 	int renderY = (int)_panCakeY;
 	bool shouldRenderPlayer = true;
@@ -649,6 +727,17 @@ void MainGame::render(HDC hdc)
 			break;
 		case PlayerState::SPRINTING:
 			IMAGEMANAGER->frameRender("질주", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
+			break;
+		case PlayerState::FLYING:
+			if (_flyingState == FlyingState::UP)
+			{
+				IMAGEMANAGER->frameRender("비행상승", memDC, _panCakeX, renderY, _flyingFrameX, 0);
+			}
+			else if (_flyingState == FlyingState::DOWN)
+			{
+				IMAGEMANAGER->frameRender("비행하강", memDC, _panCakeX, renderY, _flyingFrameX, 0);
+			}
+			break;
 		}
 	}
 
@@ -692,9 +781,10 @@ void MainGame::render(HDC hdc)
 	this->getBackBuffer()->render(hdc, 0, 0);
 }
 
+
 void MainGame::loadMap(float startX)
 {
-	std::string jellyData = "-----TTBTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTBTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
+	std::string jellyData = "-----TTTTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTBTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
 	std::string mapData = "TTT--TTTTSSSTTTTTTLTTLTTLTTTTTT--T--TTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTT";
 
 	const int TILE_WIDTH = 129;
@@ -730,4 +820,77 @@ void MainGame::loadMap(float startX)
 		}
 	}
 	_itemManager->createItems(jellyData, startX);
+}
+
+void MainGame::updateAbility()
+{
+	if (!_isAbilityActive)
+	{
+		_abilityGaugeTimer += 1.0f / 60.0f;
+		if (_abilityGaugeTimer >= _abilityChargeTime)
+		{
+			_isAbilityActive = true;
+			_abilityDurationTimer = _abilityDuration; // 지속시간 설정
+			_playerState = PlayerState::FLYING;
+			_flyingState = FlyingState::DOWN; // 기본 상태는 하강
+			_velocityY = 0; // 중력 영향 초기화
+			_flyingFrameX = 0;
+			_flyingFrameCount = 0;
+		}
+	}
+	// 능력이 활성 상태일 때
+	else
+	{
+		_abilityDurationTimer -= 1.0f / 60.0f; // 지속시간 감소
+		// 지속시간이 끝나면
+		if (_abilityDurationTimer <= 0)
+		{
+			_isAbilityActive = false;
+			_abilityGaugeTimer = 0.0f; // 게이지 타이머 초기화
+			_playerState = PlayerState::RUNNING;
+			_isPostSprintInvincible = true; // 능력 종료 후 무적
+			_postSprintInvincibleTimer = 2.0f; // 2초간 무적
+		}
+	}
+}
+
+void MainGame::updateFlying()
+{
+	// 스페이스바를 누르고 있으면 상승
+	if (KEYMANAGER->isStayKeyDown(VK_SPACE))
+	{
+		_flyingState = FlyingState::UP;
+		_panCakeY -= _flyingYSpeed; // 위로 이동
+		// 화면 상단을 벗어나지 않도록 방지
+		if (_panCakeY < 0) _panCakeY = 0;
+	}
+	// 누르지 않으면 하강
+	else
+	{
+		_flyingState = FlyingState::DOWN;
+		_panCakeY += _flyingYSpeed; // 아래로 이동
+	}
+
+	// 비행 중 타일 충돌 처리 (바닥 아래로 떨어지지 않게)
+	for (auto& tile : _tiles)
+	{
+		RECT playerFeet = RectMake(_playerHitbox.left + 10, _playerHitbox.bottom - 10, (_playerHitbox.right - _playerHitbox.left) - 20, 10);
+		RECT intersection;
+		if (IntersectRect(&intersection, &playerFeet, &tile))
+		{
+			// 플레이어를 타일 바로 위로 이동
+			_panCakeY -= (_playerHitbox.bottom - tile.top);
+			break;
+		}
+	}
+
+	// 애니메이션 프레임 처리
+	_flyingFrameCount++;
+	if (_flyingState == FlyingState::UP || _flyingState == FlyingState::DOWN)
+	{
+		if (_flyingFrameCount % 5 == 0)
+		{
+			_flyingFrameX = (_flyingFrameX + 1) % 2;
+		}
+	}
 }

@@ -81,6 +81,7 @@ public:
 	inline HDC getMemDC(void) { return _imageInfo->hMemDC; }
 	inline int getMaxFrameX(void) { return _imageInfo->maxFrameX; }
 	inline int getHeight(void) { return _imageInfo->height; }
+	inline int getWidth(void) { return _imageInfo->width; }
 
 	inline int getFrameWidth(void) { return _imageInfo->frameWidth; }
 	inline int getFrameHeight(void) { return _imageInfo->frameHeight; }

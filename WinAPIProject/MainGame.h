@@ -12,7 +12,16 @@ enum class PlayerState
 	LANDING,
 	HIT,
 	SPRINTING,
+	FLYING,
 	GAMEOVER
+};
+
+enum class FlyingState
+{
+	UP,
+	DOWN,
+	MIDDLE_TO_UP,
+	MIDDLE_TO_DOWN
 };
 
 class MainGame : public GameNode
@@ -49,6 +58,18 @@ private:
 	float _invincibleTimer;
 	float _postSprintInvincibleTimer;
 
+	// Player Ablity
+	float _abilityGaugeTimer;           // 능력 게이지 충전 타이머
+	float _abilityChargeTime;           // 능력 충전에 필요한 시간
+	bool _isAbilityActive;              // 능력 활성화 여부
+	float _abilityDurationTimer;        // 능력 지속시간 타이머
+	float _abilityDuration;             // 총 능력 지속시간
+	float _postAbilityInvincibleTimer;  // 능력 종료 후 무적 타이머
+	float _flyingYSpeed;                // 비행 시 Y축 이동 속도
+	FlyingState _flyingState;           // 비행 세부 상태 (상승, 하강 등)
+	int _flyingFrameX;					// 비행 애니메이션 프레임
+	int _flyingFrameCount;				// 비행 애니메이션 프레임 카운트
+
 #pragma endregion
 
 
@@ -84,6 +105,9 @@ public:
 	void release(void) override;
 	void update(void) override;
 	void render(HDC hdc) override;
+
+	void updateAbility();
+	void updateFlying();
 
 private:
 	//void loadMap();
