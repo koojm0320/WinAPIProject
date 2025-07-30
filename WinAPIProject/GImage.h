@@ -75,6 +75,8 @@ public:
 
 	void alphaRender(HDC hdc, int destX, int destY, BYTE alpha);
 
+	void alphaFrameRender(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY, BYTE alpha);
+
 	void alphaRenderWithTransparency(HDC hdc, int destX, int destY, BYTE alpha);
 
 

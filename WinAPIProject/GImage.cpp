@@ -320,6 +320,7 @@ void GImage::loopRender(HDC hdc, const LPRECT drawArea, int offSetX, int offSetY
 
 }
 
+
 void GImage::alphaRender(HDC hdc, int destX, int destY, BYTE alpha)
 {
     BLENDFUNCTION bf;
@@ -330,6 +331,84 @@ void GImage::alphaRender(HDC hdc, int destX, int destY, BYTE alpha)
 
     GdiAlphaBlend(hdc, destX, destY, _imageInfo->width, _imageInfo->height,
         _imageInfo->hMemDC, 0, 0, _imageInfo->width, _imageInfo->height, bf);
+}
+
+void GImage::alphaFrameRender(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY, BYTE alpha)
+{
+    if (!_isTrans)
+    {
+        BLENDFUNCTION bf;
+        bf.BlendOp = AC_SRC_OVER;
+        bf.BlendFlags = 0;
+        bf.SourceConstantAlpha = alpha;
+        bf.AlphaFormat = 0;
+
+        int sourceX = _imageInfo->frameWidth * currentFrameX;
+        int sourceY = _imageInfo->frameHeight * currentFrameY;
+
+        GdiAlphaBlend(hdc,
+            destX, destY,
+            _imageInfo->frameWidth, _imageInfo->frameHeight,
+            _imageInfo->hMemDC,
+            sourceX, sourceY,
+            _imageInfo->frameWidth, _imageInfo->frameHeight,
+            bf);
+        return;
+    }
+
+    BITMAPINFO bmi;
+    ZeroMemory(&bmi, sizeof(BITMAPINFO));
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = _imageInfo->frameWidth;
+    bmi.bmiHeader.biHeight = -_imageInfo->frameHeight;
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+    BYTE* pBits;
+    HBITMAP hbmAlpha = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&pBits, NULL, 0);
+    if (!hbmAlpha) return;
+
+    HDC hdcAlpha = CreateCompatibleDC(hdc);
+    HBITMAP hbmOldAlpha = (HBITMAP)SelectObject(hdcAlpha, hbmAlpha);
+
+    int sourceX = _imageInfo->frameWidth * currentFrameX;
+    int sourceY = _imageInfo->frameHeight * currentFrameY;
+    BitBlt(hdcAlpha, 0, 0, _imageInfo->frameWidth, _imageInfo->frameHeight, _imageInfo->hMemDC, sourceX, sourceY, SRCCOPY);
+
+    for (int y = 0; y < _imageInfo->frameHeight; ++y)
+    {
+        for (int x = 0; x < _imageInfo->frameWidth; ++x)
+        {
+            BYTE* pPixel = &pBits[(y * _imageInfo->frameWidth + x) * 4];
+            COLORREF pixelColor = RGB(pPixel[2], pPixel[1], pPixel[0]); 
+
+            if (pixelColor == _transColor)
+            {
+                pPixel[3] = 0;
+            }
+            else
+            {
+
+                pPixel[0] = (pPixel[0] * alpha) / 255; 
+                pPixel[1] = (pPixel[1] * alpha) / 255; 
+                pPixel[2] = (pPixel[2] * alpha) / 255; 
+                pPixel[3] = alpha;
+            }
+        }
+    }
+    BLENDFUNCTION bf;
+    bf.BlendOp = AC_SRC_OVER;
+    bf.BlendFlags = 0;
+    bf.SourceConstantAlpha = 255; 
+    bf.AlphaFormat = AC_SRC_ALPHA;
+
+    GdiAlphaBlend(hdc, destX, destY, _imageInfo->frameWidth, _imageInfo->frameHeight,
+        hdcAlpha, 0, 0, _imageInfo->frameWidth, _imageInfo->frameHeight, bf);
+
+    SelectObject(hdcAlpha, hbmOldAlpha);
+    DeleteObject(hbmAlpha);
+    DeleteDC(hdcAlpha);
 }
 
 void GImage::alphaRenderWithTransparency(HDC hdc, int destX, int destY, BYTE alpha)

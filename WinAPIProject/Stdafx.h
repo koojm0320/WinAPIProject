@@ -11,6 +11,8 @@
 #include <memory.h>
 #include <time.h>
 #include <tchar.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
 
 // C++ 런타임 헤더 파일
 #include <iostream>
@@ -30,11 +32,13 @@
 #include "HurdleManager.h"
 #include "ProgressBar.h"
 #include "EffectManager.h"
+#include "SoundManager.h"
 
 #define RND RandomFuntion::getSingleton()
 #define KEYMANAGER KeyManager::getSingleton()
 #define IMAGEMANAGER ImageManager::getSingleton()
 #define EFFECTMANAGER EffectManager::getSingleton()
+#define SOUNDMANAGER SoundManager::getSingleton()
 
 // # 매크로 (윈도우창 초기화) #
 

@@ -34,6 +34,7 @@
     <ClInclude Include="ProgressBar.h" />
     <ClInclude Include="RandomFuntion.h" />
     <ClInclude Include="SingletonBase.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -49,6 +50,7 @@
     <ClCompile Include="KeyManager.cpp" />
     <ClCompile Include="MainGame.cpp" />
     <ClCompile Include="ProgressBar.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>

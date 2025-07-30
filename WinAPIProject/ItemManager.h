@@ -17,6 +17,8 @@ public:
 	void createItems(const std::string& jellyData, float startX);
 	void checkCollision(const RECT& playerRC);
 
+	void updateMagnetEffect(const RECT& playerRC);
+
 	std::vector<Item*>& getItems() { return _items; }
 };
 

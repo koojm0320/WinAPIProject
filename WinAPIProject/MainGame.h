@@ -35,6 +35,8 @@ private:
 	float _panCakeY;
 	int _panCakeFrameX;
 	int _panCakeFrameCount;
+	int _magnetEffectFrameX;
+	int _magnetEffectFrameCount;
 
 	// PlayerHitBox
 	RECT _playerHitbox;
@@ -47,6 +49,7 @@ private:
 	bool _isSprinting;
 	bool _isInvincible;
 	bool _isPostSprintInvincible;
+	bool _isMagnetActive;               
 
 	// Player Physics
 	float _jumpPower;
@@ -55,6 +58,7 @@ private:
 	float _landingTime;
 	float _landingTimer;
 	float _sprintTimer;
+	float _magnetTimer;
 	float _originalMapSpeed;
 	float _invincibleTimer;
 	float _postSprintInvincibleTimer;

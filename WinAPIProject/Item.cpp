@@ -32,6 +32,12 @@ HRESULT Item::init(ItemType type, int x, int y)
 		_effectImage = IMAGEMANAGER->findImage("아이템이펙트");
 		_rc = RectMake(x, y, 90, 90);
 	}
+	else if (_type == ItemType::ITEM_MAGNET)
+	{
+		_image = IMAGEMANAGER->findImage("자석아이템");
+		_effectImage = IMAGEMANAGER->findImage("아이템이펙트");
+		_rc = RectMake(x, y, 90, 90);
+	}
 
 	return S_OK;
 }
@@ -59,6 +65,10 @@ void Item::render(HDC hdc)
 		if (_type == ItemType::ITEM_SPRINT)
 		{
 			IMAGEMANAGER->frameRender("질주아이템", hdc, _rc.left, _rc.top, 0, 0);
+		}
+		else if (_type == ItemType::ITEM_MAGNET)
+		{
+			IMAGEMANAGER->frameRender("자석아이템", hdc, _rc.left, _rc.top, 0, 0);
 		}
 		else
 		{

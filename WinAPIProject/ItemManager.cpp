@@ -115,6 +115,13 @@ void ItemManager::createItems(const std::string& jellyData, float startX)
             _items.push_back(newItem);
             break;
         }
+        case 'M': // 자석 아이템
+        {
+            Item* newItem = new Item();
+            newItem->init(ItemType::ITEM_MAGNET, currentX + 30, GROUND_Y - 90);
+            _items.push_back(newItem);
+            break;
+        }
         case '-': // 공백
         default:
             // 아무것도 생성하지 않음
@@ -151,6 +158,37 @@ void ItemManager::checkCollision(const RECT& playerRC)
                 {
                     EFFECTMANAGER->createEffect("젤리이펙트", item->getRect().left, item->getRect().top);
                 }
+            }
+        }
+    }
+}
+
+void ItemManager::updateMagnetEffect(const RECT& playerRC)
+{
+    const float magnetRadius = 250.0f;
+    const float attractionSpeed = 10.0f;
+
+    float playerCenterX = playerRC.left + (playerRC.right - playerRC.left) / 2;
+    float playerCenterY = playerRC.top + (playerRC.bottom - playerRC.top) / 2;
+
+    for (auto& item : _items)
+    {
+        if (!item->isEaten() && (item->getType() == ItemType::ITEM_MAGNET|| item->getType() == ItemType::ITEM_SPRINT|| item->getType() == ItemType::JELLY_BEAR|| item->getType() == ItemType::JELLY_NORMAL))
+        {
+            float itemCenterX = item->getRect().left + (item->getRect().right - item->getRect().left) / 2;
+            float itemCenterY = item->getRect().top + (item->getRect().bottom - item->getRect().top) / 2;
+
+            // 플레이어와의 거리 계산
+            float dx = playerCenterX - itemCenterX;
+            float dy = playerCenterY - itemCenterY;
+            float distance = sqrt(dx * dx + dy * dy);
+
+            if (distance < magnetRadius)
+            {
+                item->getRect().left += (dx / distance) * attractionSpeed;
+                item->getRect().right += (dx / distance) * attractionSpeed;
+                item->getRect().top += (dy / distance) * attractionSpeed;
+                item->getRect().bottom += (dy / distance) * attractionSpeed;
             }
         }
     }

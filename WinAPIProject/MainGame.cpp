@@ -18,15 +18,17 @@ MainGame::MainGame() :
 	_isSprinting(false),
 	_isInvincible(false),
 	_isPostSprintInvincible(false),
-	_jumpPower(20.0f),
-	_gravity(0.97f),
+	_jumpPower(20.0f),					// 점프 힘
+	_gravity(0.97f),					// 중력값
 	_velocityY(0.0f),
-	_landingTime(0.1f),
+	_landingTime(0.1f),					// 착지 애니메이션
 	_landingTimer(0.0f),
 	_sprintTimer(0.0f),
-	_originalMapSpeed(-8.0f),
+	_originalMapSpeed(-8.0f),			// 오브젝트 기본 이동 속도
 	_invincibleTimer(0.0f),
 	_postSprintInvincibleTimer(0.0f),
+	_isMagnetActive(false),
+	_magnetTimer(0.0f),
 	// BG
 	_bgX(0.0f),
 	_bgObj1X(0.0f),
@@ -39,27 +41,29 @@ MainGame::MainGame() :
 	_effectManager(nullptr),
 	// UI & etc.
 	_hpBar(nullptr),
-	_currentHp(100.0f),
-	_maxHp(100.0f),
+	_currentHp(100.0f),					// 현재HP
+	_maxHp(100.0f),						// 최대HP
 	_damageAlpha(0.0f),
 	_isGameOver(false),
 	_isShowingDamage(false),
 	_isDebug(true),
 	//Ablity
 	_abilityGaugeTimer(0.0f),
-	_abilityChargeTime(7.0f),      // 능력 충전 시간 (15초로 설정, 원하시면 조절)
+	_abilityChargeTime(15.0f),			// 능력 충전 시간 
 	_isAbilityActive(false),
 	_abilityDurationTimer(0.0f),
-	_abilityDuration(7.0f),         // 능력 지속 시간 (7초로 설정, 원하시면 조절)
+	_abilityDuration(7.0f),				// 능력 지속 시간
 	_postAbilityInvincibleTimer(0.0f),
-	_flyingYSpeed(5.5f),			// 나는 속도
+	_flyingYSpeed(5.5f),				// 나는 속도
 	_flyingState(FlyingState::DOWN),
 	_flyingFrameX(0),
 	_flyingFrameCount(0),
-	_transformationDuration(0.0f),
+	_transformationDuration(0.5f),		// 변신 시간
 	_transformationTimer(0.0f),
-	_flyingTransitionDuration(0.0f),
-	_flyingTransitionTimer(0.0f)
+	_flyingTransitionDuration(0.07f),	// 중간 애니메이션
+	_flyingTransitionTimer(0.0f),
+	_magnetEffectFrameX(0),
+	_magnetEffectFrameCount(0)
 {
 }
 
@@ -72,6 +76,7 @@ HRESULT MainGame::init(void)
 	GameNode::init();
 	IMAGEMANAGER->init();
 	EFFECTMANAGER->init();
+	SOUNDMANAGER->init();
 
 	_effectManager = EFFECTMANAGER;
 
@@ -124,9 +129,10 @@ HRESULT MainGame::init(void)
 
 	// 아이템
 	IMAGEMANAGER->addFrameImage("질주아이템", "Resources/Images/Object/booster.bmp", 240, 60, 4, 1, true, RGB(255, 0, 255));
-	IMAGEMANAGER->addFrameImage("자석아이템", "Resources/Images/Object/magnetic.bmp", 360, 90, 4, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("자석아이템", "Resources/Images/Object/magnetic.bmp", 240, 60, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("아이템이펙트", "Resources/Images/Effect/itemEaten.bmp", 272, 68, 4, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addFrameImage("질주이펙트", "Resources/Images/Effect/sprint.bmp", 151, 141, 1, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("자석이펙트", "Resources/Images/Effect/mageticEffect.bmp", 1452, 216, 6, 1, true, RGB(255, 0, 255));
 
 	// 쿠키 능력
 	IMAGEMANAGER->addFrameImage("비행상승", "Resources/Images/Object/PanCakeFlyingUp.bmp", 426, 158, 2, 1, true, RGB(255, 0, 255));
@@ -174,6 +180,8 @@ HRESULT MainGame::init(void)
 
 	loadMap(0.0f);
 
+	SOUNDMANAGER->playBGM("BGM");
+
 	RND->init();
 	return S_OK;
 }
@@ -191,6 +199,7 @@ void MainGame::release(void)
 	_itemManager->release();
 	SAFE_DELETE(_itemManager);
 	EFFECTMANAGER->releaseSingleton();
+	SOUNDMANAGER->releaseSingleton();
 }
 
 // ====================================================================================================
@@ -299,7 +308,7 @@ void MainGame::update(void)
 
 
 	// 질주 이펙트
-	if (_isSprinting)
+	if (_isSprinting && !_isAbilityActive)
 	{
 		_sprintTimer -= 1.0f / 60.0f;
 		// 일정 시간마다 질주 이펙트 생성
@@ -323,6 +332,24 @@ void MainGame::update(void)
 	_itemManager->checkCollision(_playerHitbox);
 	_hurdleManager->update(_mapPosX);
 
+	// 자석 효과
+	if (_isMagnetActive)
+	{
+		_magnetTimer -= 1.0f / 60.0f;
+		_itemManager->updateMagnetEffect(_playerHitbox);
+
+		_magnetEffectFrameCount++;
+		if (_magnetEffectFrameCount % 5 == 0)
+		{
+			_magnetEffectFrameX = (_magnetEffectFrameX + 1) % 6;
+		}
+
+		if (_magnetTimer <= 0)
+		{
+			_isMagnetActive = false;
+		}
+	}
+
 	// 질주 끝난 뒤 무적시간
 	if (_isPostSprintInvincible)
 	{
@@ -345,9 +372,11 @@ void MainGame::update(void)
 
 	// 맵 이동 속도
 	float speedMultiplier = 1.0f;
-	if (_isAbilityActive) speedMultiplier = 1.5f;
-	if (_isSprinting) speedMultiplier = 2.0f; // 질주가 능력보다 우선
-	_mapPosX = _isAbilityActive ? _originalMapSpeed * 1.5f : (_isSprinting ? _originalMapSpeed * 2 : _originalMapSpeed);
+	if (_isSprinting || _isAbilityActive)
+	{
+		speedMultiplier = 2.0f;
+	}
+	_mapPosX = _originalMapSpeed * speedMultiplier;
 
 	for (size_t i = 0; i < _tiles.size(); )
 	{
@@ -362,6 +391,7 @@ void MainGame::update(void)
 		else i++;
 	}
 
+
 	// 타일 생성
 	if (!_tiles.empty() && _tiles.back().left < WINSIZE_X)
 	{
@@ -370,7 +400,6 @@ void MainGame::update(void)
 	
 
 	// 키 입력 처리
-
 	if (_playerState != PlayerState::HIT && _playerState != PlayerState::FLYING)
 	{
 		if (KEYMANAGER->isOnceKeyDown(VK_SPACE))
@@ -382,6 +411,8 @@ void MainGame::update(void)
 				_canDoubleJump = true;
 				_panCakeFrameX = 0;
 				_panCakeFrameCount = 0;
+
+				SOUNDMANAGER->playSound("Jump1");
 			}
 			else if (_playerState == PlayerState::JUMPING && _canDoubleJump)
 			{
@@ -390,6 +421,8 @@ void MainGame::update(void)
 				_canDoubleJump = false;
 				_panCakeFrameX = 0;
 				_panCakeFrameCount = 0;
+
+				SOUNDMANAGER->playSound("Jump2");
 			}
 		}
 	}
@@ -407,6 +440,7 @@ void MainGame::update(void)
 	}
 
 	bool onGround = false;
+
 	// 타일 - 플레이어 충돌 처리
 	if (_playerState != PlayerState::FLYING)
 	{
@@ -448,12 +482,25 @@ void MainGame::update(void)
 			{
 				if (item->getType() == ItemType::ITEM_SPRINT)
 				{
+					if (item->getType() == ItemType::ITEM_SPRINT && !_isAbilityActive)
+					{
+						item->eat();
+						_isSprinting = true;
+						_sprintTimer = 5.0f;
+						_playerState = PlayerState::SPRINTING;
+						_panCakeFrameX = 0;
+						_panCakeFrameCount = 0;
+					}
+					else
+					{
+						item->eat();
+					}
+				}
+				else if (item->getType() == ItemType::ITEM_MAGNET)
+				{
 					item->eat();
-					_isSprinting = true;
-					_sprintTimer = 5;
-					_playerState = PlayerState::SPRINTING;
-					_panCakeFrameX = 0;
-					_panCakeFrameCount = 0;
+					_isMagnetActive = true;
+					_magnetTimer = 7.0f;
 				}
 				else if (item->getType() == ItemType::JELLY_NORMAL || item->getType() == ItemType::JELLY_BEAR)
 				{
@@ -463,13 +510,13 @@ void MainGame::update(void)
 		}
 	}
 
-	// 시프트 입력시 착지 모션 스킵
+	// 착지, 슬라이드 처리
 	if (_playerState == PlayerState::LANDING)
 	{
 		_landingTimer -= 1.0f / 60.0f;
 		if (_landingTimer <= 0)
 		{
-			if (_isSprinting)
+			if (_isSprinting && !_isAbilityActive)
 			{
 				_playerState = PlayerState::SPRINTING;
 			}
@@ -488,11 +535,20 @@ void MainGame::update(void)
 				_playerState = PlayerState::SLIDING;
 				_panCakeFrameX = 0;
 				_panCakeFrameCount = 0;
+
+				if (RND->getInt(2) == 0) // 0 또는 1을 랜덤으로 생성
+				{
+					SOUNDMANAGER->playSound("Slide1");
+				}
+				else
+				{
+					SOUNDMANAGER->playSound("Slide2");
+				}
 			}
 		}
 		else if (_playerState == PlayerState::SLIDING)
 		{
-			if (_isSprinting)
+			if (_isSprinting && !_isAbilityActive)
 			{
 				_playerState = PlayerState::SPRINTING;
 				_panCakeFrameX = 0;
@@ -534,7 +590,7 @@ void MainGame::update(void)
 			}
 		}
 	}
-	else if (!_isInvincible && !_isPostSprintInvincible)
+	else if (!_isInvincible && !_isPostSprintInvincible && _playerState != PlayerState::TRANSFORMING)
 	{
 		for (auto& hurdle : _hurdleManager->getHurdles())
 		{
@@ -695,21 +751,44 @@ void MainGame::render(HDC hdc)
 	_itemManager->render(memDC);
 	_effectManager->render(memDC);
 
-	IMAGEMANAGER->findImage("능력게이지Empty")->render(memDC, _panCakeX + 60, _panCakeY - 20);
+	// 자석 이펙트
+	if (_isMagnetActive)
+	{
+		GImage* magnetEffectImg = IMAGEMANAGER->findImage("자석이펙트");
+		if (magnetEffectImg)
+		{
+			int effectX = _playerHitbox.left + (_playerHitbox.right - _playerHitbox.left - magnetEffectImg->getFrameWidth()) / 2;
+			int effectY = _playerHitbox.top + (_playerHitbox.bottom - _playerHitbox.top - magnetEffectImg->getFrameHeight()) / 2;
 
-	float gaugeRatio = _abilityGaugeTimer / _abilityChargeTime;
+			magnetEffectImg->alphaFrameRender(memDC, effectX - 10, effectY, _magnetEffectFrameX, 0, 100);
+		}
+	}
+
+	// 능력 게이지 render
+	IMAGEMANAGER->findImage("능력게이지Empty")->render(memDC, _panCakeX + 60, _panCakeY - 20);
+	float gaugeRatio = 0.0f;
+	if (_isAbilityActive)
+	{
+		gaugeRatio = _abilityDurationTimer / _abilityDuration;
+	}
+	else
+	{
+		gaugeRatio = _abilityGaugeTimer / _abilityChargeTime;
+	}
+
 	if (gaugeRatio > 1.0f) gaugeRatio = 1.0f;
+	if (gaugeRatio < 0.0f) gaugeRatio = 0.0f;
 
 	GImage* fullGaugeImg = IMAGEMANAGER->findImage("능력게이지Full");
 	if (fullGaugeImg)
 	{
-		// getWidth()를 사용하여 너비를 가져옵니다.
 		int gaugeWidth = fullGaugeImg->getWidth() * gaugeRatio;
 		fullGaugeImg->render(memDC, _panCakeX + 60, _panCakeY - 20, 0, 0, gaugeWidth, fullGaugeImg->getHeight());
 	}
 
 	int renderY = (int)_panCakeY;
 	bool shouldRenderPlayer = true;
+
 	// 피격 무적 상태일 때 깜빡임 처리
 	if (_isInvincible && (int)(_invincibleTimer * 10) % 2 == 0)
 	{
@@ -780,7 +859,6 @@ void MainGame::render(HDC hdc)
 		}
 	}
 
-
 	if (_isShowingDamage)
 	{
 		IMAGEMANAGER->findImage("데미지")->alphaRenderWithTransparency(memDC, 0, 0, static_cast<BYTE>(_damageAlpha));
@@ -823,8 +901,8 @@ void MainGame::render(HDC hdc)
 
 void MainGame::loadMap(float startX)
 {
-	std::string jellyData = "-----TTTTSSSTTTTT-L--L--L-TTTTTTTTTTTTTST-L-TST-L-TST-L-TTTBTT-H-T-H-T-H-T-H-T-H-T-H-TTTTTT";
-	std::string mapData = "TTT--TTTTSSSTTTTTTLTTLTTLTTTTTT--T--TTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTT";
+	std::string jellyData = "-----TTTMSSSTTTTT-L--L--L-TBTTTTTTTTTTTST-L-TST-L-TST-L-TTTTTT-H-T-H-T-H-T-H-T-H-T-H-TTTBTT";
+	std::string mapData = "TTT--TTTTSSSTTTTTTLTTLTTLTTTTTT--T--TTTSTTLTTSTTLTTSTTLTTTTTTTTHTTTHTTTHTTTHTTTHTTTHTTTTTTTHHHHHHHHHHHHHHHHHHHHH";
 
 	const int TILE_WIDTH = 129;
 	const int TILE_HEIGHT = 50;
@@ -868,6 +946,9 @@ void MainGame::updateAbility()
 		_abilityGaugeTimer += 1.0f / 60.0f;
 		if (_abilityGaugeTimer >= _abilityChargeTime)
 		{
+			_isSprinting = false;
+			_sprintTimer = 0.0f;
+
 			_playerState = PlayerState::TRANSFORMING;		
 			_transformationTimer = _transformationDuration; 
 			_abilityDurationTimer = _abilityDuration;		
