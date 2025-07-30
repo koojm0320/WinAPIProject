@@ -13,6 +13,7 @@ enum class PlayerState
 	HIT,
 	SPRINTING,
 	FLYING,
+	TRANSFORMING,
 	GAMEOVER
 };
 
@@ -59,16 +60,20 @@ private:
 	float _postSprintInvincibleTimer;
 
 	// Player Ablity
-	float _abilityGaugeTimer;           // 능력 게이지 충전 타이머
-	float _abilityChargeTime;           // 능력 충전에 필요한 시간
-	bool _isAbilityActive;              // 능력 활성화 여부
-	float _abilityDurationTimer;        // 능력 지속시간 타이머
-	float _abilityDuration;             // 총 능력 지속시간
-	float _postAbilityInvincibleTimer;  // 능력 종료 후 무적 타이머
-	float _flyingYSpeed;                // 비행 시 Y축 이동 속도
-	FlyingState _flyingState;           // 비행 세부 상태 (상승, 하강 등)
-	int _flyingFrameX;					// 비행 애니메이션 프레임
-	int _flyingFrameCount;				// 비행 애니메이션 프레임 카운트
+	float _abilityGaugeTimer;           
+	float _abilityChargeTime;           
+	bool _isAbilityActive;              
+	float _abilityDurationTimer;        
+	float _abilityDuration;             
+	float _postAbilityInvincibleTimer;  
+	float _flyingYSpeed;                
+	FlyingState _flyingState;           
+	int _flyingFrameX;					
+	int _flyingFrameCount;
+	float _transformationTimer;		// 변신 애니메이션 타이머
+	float _transformationDuration;	// 변신 애니메이션 지속시간
+	float _flyingTransitionTimer;       // 비행 전환 애니메이션 타이머
+	float _flyingTransitionDuration;    // 비행 전환 애니메이션 지속시간
 
 #pragma endregion
 

@@ -47,7 +47,7 @@ MainGame::MainGame() :
 	_isDebug(true),
 	//Ablity
 	_abilityGaugeTimer(0.0f),
-	_abilityChargeTime(15.0f),      // 능력 충전 시간 (15초로 설정, 원하시면 조절)
+	_abilityChargeTime(7.0f),      // 능력 충전 시간 (15초로 설정, 원하시면 조절)
 	_isAbilityActive(false),
 	_abilityDurationTimer(0.0f),
 	_abilityDuration(7.0f),         // 능력 지속 시간 (7초로 설정, 원하시면 조절)
@@ -55,11 +55,17 @@ MainGame::MainGame() :
 	_flyingYSpeed(5.5f),			// 나는 속도
 	_flyingState(FlyingState::DOWN),
 	_flyingFrameX(0),
-	_flyingFrameCount(0)
+	_flyingFrameCount(0),
+	_transformationDuration(0.0f),
+	_transformationTimer(0.0f),
+	_flyingTransitionDuration(0.0f),
+	_flyingTransitionTimer(0.0f)
 {
 }
 
+// ====================================================================================================
 // ============================================== INIT ==============================================
+// ====================================================================================================
 
 HRESULT MainGame::init(void)
 {
@@ -128,7 +134,7 @@ HRESULT MainGame::init(void)
 	IMAGEMANAGER->addFrameImage("비행하강", "Resources/Images/Object/PanCakeFlyingDown.bmp", 426, 158, 2, 1, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("능력게이지Empty", "Resources/Images/UI/ablityEmpty.bmp", 66, 21, true, RGB(255, 0, 255));
 	IMAGEMANAGER->addImage("능력게이지Full", "Resources/Images/UI/ablityFull.bmp", 66, 21, true, RGB(255, 0, 255));
-	
+	IMAGEMANAGER->addFrameImage("변신애니메이션", "Resources/Images/Object/panCakeTransform.bmp", 1750, 155, 10, 1, true, RGB(255, 0, 255));
 	
 	// 변수 초기 설정
 	_panCakeX = 130;
@@ -172,7 +178,9 @@ HRESULT MainGame::init(void)
 	return S_OK;
 }
 
+// ====================================================================================================
 // ============================================== RELEASE ==============================================
+// ====================================================================================================
 
 void MainGame::release(void)
 {
@@ -185,8 +193,9 @@ void MainGame::release(void)
 	EFFECTMANAGER->releaseSingleton();
 }
 
-
+// ====================================================================================================
 // ============================================== UPDATE ==============================================
+// ====================================================================================================
 
 void MainGame::update(void)
 {
@@ -276,7 +285,18 @@ void MainGame::update(void)
 		return;
 	}
 
+	if (_playerState == PlayerState::TRANSFORMING)
+	{
+		_transformationTimer -= 1.0f / 60.0f;
+		if (_transformationTimer <= 0)
+		{
+			_playerState = PlayerState::FLYING; // 변신이 끝나면 비행 상태로 전환
+			_isAbilityActive = true; // 실제 능력 효과는 이때부터 적용
+		}
+	}
+
 	updateAbility();
+
 
 	// 질주 이펙트
 	if (_isSprinting)
@@ -324,6 +344,9 @@ void MainGame::update(void)
 	}
 
 	// 맵 이동 속도
+	float speedMultiplier = 1.0f;
+	if (_isAbilityActive) speedMultiplier = 1.5f;
+	if (_isSprinting) speedMultiplier = 2.0f; // 질주가 능력보다 우선
 	_mapPosX = _isAbilityActive ? _originalMapSpeed * 1.5f : (_isSprinting ? _originalMapSpeed * 2 : _originalMapSpeed);
 
 	for (size_t i = 0; i < _tiles.size(); )
@@ -638,10 +661,15 @@ void MainGame::update(void)
 		break;
 	case PlayerState::FLYING:
 		break;
+	case PlayerState::TRANSFORMING:
+		if (_panCakeFrameCount % 5 == 0) _panCakeFrameX = (_panCakeFrameX + 1) % 4;
+		break;
 	}
 }
 
+// ====================================================================================================
 // ============================================== RENDER ==============================================
+// ====================================================================================================
 
 void MainGame::render(HDC hdc)
 {
@@ -728,16 +756,27 @@ void MainGame::render(HDC hdc)
 		case PlayerState::SPRINTING:
 			IMAGEMANAGER->frameRender("질주", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
 			break;
-		case PlayerState::FLYING:
-			if (_flyingState == FlyingState::UP)
-			{
-				IMAGEMANAGER->frameRender("비행상승", memDC, _panCakeX, renderY, _flyingFrameX, 0);
-			}
-			else if (_flyingState == FlyingState::DOWN)
-			{
-				IMAGEMANAGER->frameRender("비행하강", memDC, _panCakeX, renderY, _flyingFrameX, 0);
-			}
+		case PlayerState::TRANSFORMING:
+			IMAGEMANAGER->frameRender("변신애니메이션", memDC, _panCakeX, renderY, _panCakeFrameX, 0);
 			break;
+		case PlayerState::FLYING:
+			switch (_flyingState)
+			{
+			case FlyingState::UP:
+				IMAGEMANAGER->frameRender("비행상승", memDC, _panCakeX, renderY, _flyingFrameX, 0);
+				break;
+			case FlyingState::DOWN:
+				IMAGEMANAGER->frameRender("비행하강", memDC, _panCakeX, renderY, _flyingFrameX, 0);
+				break;
+			case FlyingState::MIDDLE_TO_UP:
+				IMAGEMANAGER->findImage("비행중간")->render(memDC, _panCakeX, renderY);
+				break;
+			case FlyingState::MIDDLE_TO_DOWN:
+				IMAGEMANAGER->findImage("비행중간")->render(memDC, _panCakeX, renderY);
+				break;
+			default:
+				break;
+			}
 		}
 	}
 
@@ -824,22 +863,22 @@ void MainGame::loadMap(float startX)
 
 void MainGame::updateAbility()
 {
-	if (!_isAbilityActive)
+	if (!_isAbilityActive && _playerState != PlayerState::TRANSFORMING)
 	{
 		_abilityGaugeTimer += 1.0f / 60.0f;
 		if (_abilityGaugeTimer >= _abilityChargeTime)
 		{
-			_isAbilityActive = true;
-			_abilityDurationTimer = _abilityDuration; // 지속시간 설정
-			_playerState = PlayerState::FLYING;
-			_flyingState = FlyingState::DOWN; // 기본 상태는 하강
-			_velocityY = 0; // 중력 영향 초기화
-			_flyingFrameX = 0;
-			_flyingFrameCount = 0;
+			_playerState = PlayerState::TRANSFORMING;		
+			_transformationTimer = _transformationDuration; 
+			_abilityDurationTimer = _abilityDuration;		
+
+			_velocityY = 0; 
+			_panCakeFrameX = 0;
+			_panCakeFrameCount = 0;
 		}
 	}
 	// 능력이 활성 상태일 때
-	else
+	else if(_isAbilityActive)
 	{
 		_abilityDurationTimer -= 1.0f / 60.0f; // 지속시간 감소
 		// 지속시간이 끝나면
@@ -856,19 +895,37 @@ void MainGame::updateAbility()
 
 void MainGame::updateFlying()
 {
-	// 스페이스바를 누르고 있으면 상승
-	if (KEYMANAGER->isStayKeyDown(VK_SPACE))
+	FlyingState prevState = _flyingState;
+
+	FlyingState targetState = KEYMANAGER->isStayKeyDown(VK_SPACE) ? FlyingState::UP : FlyingState::DOWN;
+
+	if (_flyingState != targetState && _flyingState != FlyingState::MIDDLE_TO_UP && _flyingState != FlyingState::MIDDLE_TO_DOWN)
 	{
-		_flyingState = FlyingState::UP;
-		_panCakeY -= _flyingYSpeed; // 위로 이동
-		// 화면 상단을 벗어나지 않도록 방지
-		if (_panCakeY < 0) _panCakeY = 0;
+		if (targetState == FlyingState::UP) _flyingState = FlyingState::MIDDLE_TO_UP;
+		else _flyingState = FlyingState::MIDDLE_TO_DOWN;
+		_flyingTransitionTimer = _flyingTransitionDuration; // 전환 타이머 설정
 	}
-	// 누르지 않으면 하강
-	else
+
+	switch (_flyingState)
 	{
-		_flyingState = FlyingState::DOWN;
-		_panCakeY += _flyingYSpeed; // 아래로 이동
+	case FlyingState::MIDDLE_TO_UP:
+		_flyingTransitionTimer -= 1.0f / 60.0f;
+		if (_flyingTransitionTimer <= 0) _flyingState = FlyingState::UP;
+		break;
+
+	case FlyingState::UP:
+		_panCakeY -= _flyingYSpeed;
+		if (_panCakeY < 0) _panCakeY = 0;
+		break;
+
+	case FlyingState::MIDDLE_TO_DOWN:
+		_flyingTransitionTimer -= 1.0f / 60.0f;
+		if (_flyingTransitionTimer <= 0) _flyingState = FlyingState::DOWN;
+		break;
+
+	case FlyingState::DOWN:
+		_panCakeY += _flyingYSpeed;
+		break;
 	}
 
 	// 비행 중 타일 충돌 처리 (바닥 아래로 떨어지지 않게)
