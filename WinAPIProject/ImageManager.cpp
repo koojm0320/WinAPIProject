@@ -30,11 +30,10 @@ GImage* ImageManager::addImage(std::string strKey, const char* fileName, int wid
     return img;
 }
 
-// 프레임 이미지를 생성하고 map에 추가
 GImage* ImageManager::addFrameImage(std::string strKey, const char* fileName, int width, int height, int maxFrameX, int maxFrameY, bool isTrans, COLORREF transColor)
 {
     GImage* img = findImage(strKey);
-    if (img) return img; // 이미 존재하면 새로 만들지 않고 반환
+    if (img) return img; 
 
     img = new GImage;
     if (FAILED(img->init(fileName, width, height, maxFrameX, maxFrameY, isTrans, transColor)))

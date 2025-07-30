@@ -49,7 +49,7 @@ MainGame::MainGame() :
 	_isDebug(true),
 	//Ablity
 	_abilityGaugeTimer(0.0f),
-	_abilityChargeTime(15.0f),			// 능력 충전 시간 
+	_abilityChargeTime(20.0),			// 능력 충전 시간 
 	_isAbilityActive(false),
 	_abilityDurationTimer(0.0f),
 	_abilityDuration(7.0f),				// 능력 지속 시간
@@ -171,7 +171,7 @@ HRESULT MainGame::init(void)
 	_isGameOver = false;
 	_isSprinting = false;
 	_isPostSprintInvincible = false;
-	_isDebug = true;
+	_isDebug = false;
 	_hpBar = new ProgressBar;
 	_hpBar->init(65, 27, 644, 46);
 	_hpBar->setBackImage(IMAGEMANAGER->findImage("체력바이펙트"));
@@ -412,7 +412,7 @@ void MainGame::update(void)
 				_panCakeFrameX = 0;
 				_panCakeFrameCount = 0;
 
-				SOUNDMANAGER->playEffect("Jump1");
+				SOUNDMANAGER->playSound("Jump1");
 			}
 			else if (_playerState == PlayerState::JUMPING && _canDoubleJump)
 			{
@@ -422,7 +422,7 @@ void MainGame::update(void)
 				_panCakeFrameX = 0;
 				_panCakeFrameCount = 0;
 
-				SOUNDMANAGER->playEffect("Jump2");
+				SOUNDMANAGER->playSound("Jump2");
 			}
 		}
 	}
@@ -485,7 +485,7 @@ void MainGame::update(void)
 					if (item->getType() == ItemType::ITEM_SPRINT && !_isAbilityActive)
 					{
 						item->eat();
-						SOUNDMANAGER->playEffect("Jelly");
+						SOUNDMANAGER->playSound("Jelly");
 
 						_isSprinting = true;
 						_sprintTimer = 5.0f;
@@ -496,20 +496,20 @@ void MainGame::update(void)
 					else
 					{
 						item->eat();
-						SOUNDMANAGER->playEffect("Jelly");
+						SOUNDMANAGER->playSound("Jelly");
 					}
 				}
 				else if (item->getType() == ItemType::ITEM_MAGNET)
 				{
 					item->eat();
-					SOUNDMANAGER->playEffect("Jelly");
+					SOUNDMANAGER->playSound("Jelly");
 					_isMagnetActive = true;
 					_magnetTimer = 7.0f;
 				}
 				else if (item->getType() == ItemType::JELLY_NORMAL || item->getType() == ItemType::JELLY_BEAR)
 				{
 					item->eat();
-					SOUNDMANAGER->playEffect("Jelly");
+					SOUNDMANAGER->playSound("Jelly");
 				}
 			}
 		}
@@ -543,11 +543,11 @@ void MainGame::update(void)
 
 				if (RND->getInt(2) == 0) // 0 또는 1을 랜덤으로 생성
 				{
-					SOUNDMANAGER->playEffect("Slide1");
+					SOUNDMANAGER->playSound("Slide1");
 				}
 				else
 				{
-					SOUNDMANAGER->playEffect("Slide2");
+					SOUNDMANAGER->playSound("Slide2");
 				}
 			}
 		}
@@ -580,7 +580,7 @@ void MainGame::update(void)
 				if (IntersectRect(&temp, &_playerHitbox, &hurdle->getRect()))
 				{
 					hurdle->destroy();
-					SOUNDMANAGER->playEffect("Crash");
+					SOUNDMANAGER->playSound("Crash");
 					// 파괴 위치에 이펙트 생성
 					if (hurdle->getType() == HurdleType::SPIKE)
 					{
@@ -959,7 +959,7 @@ void MainGame::updateAbility()
 			_transformationTimer = _transformationDuration; 
 			_abilityDurationTimer = _abilityDuration;		
 
-			SOUNDMANAGER->playEffect("TransformStart");
+			SOUNDMANAGER->playSound("TransformStart");
 
 			_velocityY = 0; 
 			_panCakeFrameX = 0;
@@ -976,7 +976,7 @@ void MainGame::updateAbility()
 			_isAbilityActive = false;
 			_abilityGaugeTimer = 0.0f; // 게이지 타이머 초기화
 			_playerState = PlayerState::RUNNING;
-			SOUNDMANAGER->playEffect("TransformEnd");
+			SOUNDMANAGER->playSound("TransformEnd");
 			_isPostSprintInvincible = true; // 능력 종료 후 무적
 			_postSprintInvincibleTimer = 2.0f; // 2초간 무적
 		}
@@ -992,9 +992,9 @@ void MainGame::updateFlying()
 	if(KEYMANAGER->isOnceKeyDown(VK_SPACE))
 	{
 		int randSound = RND->getInt(3);
-		if (randSound == 0) SOUNDMANAGER->playEffect("TransformFlight1");
-		else if (randSound == 1) SOUNDMANAGER->playEffect("TransformFlight2");
-		else SOUNDMANAGER->playEffect("TransformFlight3");
+		if (randSound == 0) SOUNDMANAGER->playSound("TransformFlight1");
+		else if (randSound == 1) SOUNDMANAGER->playSound("TransformFlight2");
+		else SOUNDMANAGER->playSound("TransformFlight3");
 	}
 
 

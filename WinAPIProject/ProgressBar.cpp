@@ -46,7 +46,6 @@ void ProgressBar::render(HDC hdc)
 	if (_effectImage)
 	{
 		int effectX = _rc.left + _width - (_effectImage->getFrameWidth() / 2);
-		// YÁÂÇ¥¸¦ Ã¼·Â ¹ÙÀÇ ¼¼·Î Áß¾Ó¿¡ ¸ÂÃä´Ï´Ù.
 		int effectY = _rc.top + (_rc.bottom - _rc.top) / 2 - (_effectImage->getFrameHeight() / 2 + 10);
 
 		_effectImage->frameRender(hdc, effectX, effectY, _effectFrameX, 0);

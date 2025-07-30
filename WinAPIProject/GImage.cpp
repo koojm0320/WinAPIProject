@@ -94,12 +94,10 @@ HRESULT GImage::init(const char* fileName, int width, int height, int maxFrameX,
     _imageInfo->width = width;
     _imageInfo->height = height;
 
-    // 프레임 정보 저장
     _imageInfo->currentFrameX = 0;
     _imageInfo->currentFrameY = 0;
-    _imageInfo->maxFrameX = maxFrameX - 1; // 0부터 시작하므로 -1
+    _imageInfo->maxFrameX = maxFrameX - 1;
     _imageInfo->maxFrameY = maxFrameY - 1;
-    // 프레임 1개의 너비와 높이 계산
     _imageInfo->frameWidth = width / maxFrameX;
     _imageInfo->frameHeight = height / maxFrameY;
 
@@ -129,31 +127,26 @@ void GImage::setTransColor(bool isTrans, COLORREF transColor)
 
 void GImage::release(void)
 {
-    // 이미지 정보가 있다면
     if (_imageInfo)
     {
-        // 삭제 -> 이미지
+
         SelectObject(_imageInfo->hMemDC, _imageInfo->hOBIT);
         DeleteObject(_imageInfo->hBit);
         DeleteDC(_imageInfo->hMemDC);
 
-        // 삭제 -> 포인터 (댕글링 방지)
         SAFE_DELETE(_imageInfo);
         SAFE_DELETE_ARRAY(_fileName);
 
-        // 초기화
         _isTrans = false;
         _transColor = RGB(0, 0, 0);
     }
 }
 
 
-// 0, 0
 void GImage::render(HDC hdc)
 {
     if (_isTrans)
     {
-        // GdiTransparentBlt(): 특정 색상을 빼고 복사를 수행함.
         GdiTransparentBlt
         (
             hdc,
@@ -169,13 +162,10 @@ void GImage::render(HDC hdc)
     }
     else
     {
-        // BitBlt(): DC 간의 영역끼리 서로 고속복사 수행
-        // SRCCOPY: 소스 영역 -> 대상 영역에 복사
         BitBlt(hdc, 0, 0, _imageInfo->width, _imageInfo->height, _imageInfo->hMemDC, 0, 0, SRCCOPY);
     }
 }
 
-// 좌표 지정
 void GImage::render(HDC hdc, int destX, int destY)
 {
     if (_isTrans)
