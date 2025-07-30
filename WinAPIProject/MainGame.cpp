@@ -575,6 +575,7 @@ void MainGame::update(void)
 				if (IntersectRect(&temp, &_playerHitbox, &hurdle->getRect()))
 				{
 					hurdle->destroy();
+					SOUNDMANAGER->playSound("Crash");
 					// 파괴 위치에 이펙트 생성
 					if (hurdle->getType() == HurdleType::SPIKE)
 					{
@@ -953,6 +954,8 @@ void MainGame::updateAbility()
 			_transformationTimer = _transformationDuration; 
 			_abilityDurationTimer = _abilityDuration;		
 
+			SOUNDMANAGER->playSound("TransformStart");
+
 			_velocityY = 0; 
 			_panCakeFrameX = 0;
 			_panCakeFrameCount = 0;
@@ -968,6 +971,7 @@ void MainGame::updateAbility()
 			_isAbilityActive = false;
 			_abilityGaugeTimer = 0.0f; // 게이지 타이머 초기화
 			_playerState = PlayerState::RUNNING;
+			SOUNDMANAGER->playSound("TransformEnd");
 			_isPostSprintInvincible = true; // 능력 종료 후 무적
 			_postSprintInvincibleTimer = 2.0f; // 2초간 무적
 		}
@@ -979,6 +983,15 @@ void MainGame::updateFlying()
 	FlyingState prevState = _flyingState;
 
 	FlyingState targetState = KEYMANAGER->isStayKeyDown(VK_SPACE) ? FlyingState::UP : FlyingState::DOWN;
+
+	if(KEYMANAGER->isOnceKeyDown(VK_SPACE))
+	{
+		int randSound = RND->getInt(3);
+		if (randSound == 0) SOUNDMANAGER->playSound("TransformFlight1");
+		else if (randSound == 1) SOUNDMANAGER->playSound("TransformFlight2");
+		else SOUNDMANAGER->playSound("TransformFlight3");
+	}
+
 
 	if (_flyingState != targetState && _flyingState != FlyingState::MIDDLE_TO_UP && _flyingState != FlyingState::MIDDLE_TO_DOWN)
 	{

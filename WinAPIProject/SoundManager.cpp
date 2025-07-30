@@ -11,6 +11,14 @@ HRESULT SoundManager::init(void)
     addSound("Jump2", "Resources/Sounds/Jump2.wav");
     addSound("Slide1", "Resources/Sounds/Slide1.wav");
     addSound("Slide2", "Resources/Sounds/Slide2.wav");
+    addSound("Jelly", "Resources/Sounds/Jelly.wav");
+    addSound("TransformStart", "Resources/Sounds/TransformStart.wav");
+    addSound("TransformFlight1", "Resources/Sounds/TransformFlight1.wav");
+    addSound("TransformFlight2", "Resources/Sounds/TransformFlight2.wav");
+    addSound("TransformFlight3", "Resources/Sounds/TransformFlight3.wav");
+    addSound("TransformEnd", "Resources/Sounds/TransformEnd.wav");
+    addSound("Crash", "Resources/Sounds/Crash.wav");
+
     return S_OK;
 }
 
